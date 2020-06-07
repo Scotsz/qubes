@@ -1,0 +1,48 @@
+syntax = "proto3";
+option go_package = ";pb";
+package pb;
+
+message Request {
+    uint64 tick = 1;
+    Command command = 2;
+}
+
+message Command {
+    oneof type {
+        Move move = 1;
+        Shoot shoot = 2;
+    }
+}
+
+message Shoot {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+message Move {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+message Response {
+    uint64 tick = 1;
+    Payload payload = 2;
+}
+
+message Payload {
+    oneof type {
+        AllPlayers players = 1;
+        Player playerConnect = 2;
+        Player playerDisconnect = 3;
+    }
+}
+
+message Player {
+    string id = 1;
+    float x = 2;
+    float y = 3;
+}
+
+message AllPlayers {
+    repeated Player player = 1;
+}
