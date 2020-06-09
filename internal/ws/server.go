@@ -3,7 +3,6 @@ package ws
 import (
 	"context"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"log"
 	"nhooyr.io/websocket"
@@ -90,35 +89,4 @@ func (s *Server) Send(id model.ClientID, msg proto.Message) {
 		s.logger.Info(err)
 	}
 	s.clients[id].Send(data)
-}
-
-type Protocol interface {
-	Marshal(msg proto.Message) ([]byte, error)
-	Unmarshal(data []byte, msg proto.Message) error
-}
-type jsonProto struct {
-	mopts  protojson.MarshalOptions
-	unopts protojson.UnmarshalOptions
-}
-
-func NewJsonProto() *jsonProto {
-	return &jsonProto{
-		mopts: protojson.MarshalOptions{
-			UseEnumNumbers:  false,
-			EmitUnpopulated: true,
-		},
-		unopts: protojson.UnmarshalOptions{
-			AllowPartial:   false,
-			DiscardUnknown: false,
-			Resolver:       nil,
-		},
-	}
-}
-
-func (j jsonProto) Marshal(msg proto.Message) ([]byte, error) {
-	return j.mopts.Marshal(msg)
-}
-
-func (j jsonProto) Unmarshal(data []byte, msg proto.Message) error {
-	return j.unopts.Unmarshal(data, msg)
 }

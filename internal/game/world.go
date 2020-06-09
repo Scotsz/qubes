@@ -18,14 +18,16 @@ func NewWorld(w, h int) *World {
 		depth:  1,
 		blocks: make([]*Block, w*h, w*h),
 	}
-	world.Fill(Point{0, 0, 0}, Point{w - 1, h - 1, 0}, &Block{blockType: pb.BlockType_Air})
+	world.Fill(Point{0, 0, 0}, Point{w - 1, h - 1, 0}, pb.BlockType_Air)
 	return world
 }
 
-func (w *World) Fill(start, end Point, block *Block) {
-	for i := start.Y; i <= end.Y; i++ {
-		for j := start.X; j <= end.X; j++ {
-			w.SetBlock(Point{j, i, 0}, block)
+func (w *World) Fill(start, end Point, btype pb.BlockType) {
+	for i := start.X; i <= end.X; i++ {
+		for j := start.Y; j <= end.Y; j++ {
+			for k := start.Z; k <= end.Z; k++ {
+				w.SetBlock(Point{i, j, k}, &Block{blockType: btype})
+			}
 		}
 	}
 }
@@ -60,7 +62,7 @@ type Change struct {
 func (c *Change) ToProto() *pb.Change {
 	points := make([]*pb.WorldPoint, 0)
 	for _, c := range c.points {
-		points = append(points, &pb.WorldPoint{X: int32(c.X), Y: int32(c.Y)})
+		points = append(points, &pb.WorldPoint{X: int32(c.X), Y: int32(c.Y), Z: int32(c.Y)})
 	}
 	return &pb.Change{Point: points, BlockType: c.newType}
 }

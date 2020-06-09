@@ -84,13 +84,13 @@ func (g *Game) processCommands() {
 			switch r.Command.Type.(type) {
 			case *pb.Command_Move:
 				{
-					move := r.Command.GetMove()
-					g.logger.Infof("Got MOVE[%v:%v] ID[%v] TICK[%v]", move.X, move.Y, r.id[:8], r.Tick)
-					g.players[r.id].SetDest(move.X, move.Y)
+					m := r.Command.GetMove()
+					g.logger.Infof("Got MOVE[%v:%v] ID[%v] TICK[%v]", m.Point.X, m.Point.Y, r.id[:8], r.Tick)
+					g.players[r.id].SetDest(m.Point.X, m.Point.Y, m.Point.Z)
 				}
 			case *pb.Command_Shoot:
 				{
-					x, y := r.Command.GetShoot().X, r.Command.GetShoot().Y
+					x, y := r.Command.GetShoot().Point.X, r.Command.GetShoot().Point.Y
 					change := g.world.CalculateDestroyChange(Point{int(x), int(y), 0})
 					g.worldChanges = append(g.worldChanges, change)
 					g.logger.Infof("Got SHOOT ID[%v] TICK[%v]", r.id, r.Tick)
@@ -171,9 +171,11 @@ func (g *Game) AllPlayersResponse() *pb.Response {
 	for id, p := range g.players {
 		resp = append(resp, &pb.Player{
 			Id: string(id),
-			X:  float32(p.X),
-			Y:  float32(p.Y),
-		})
+			Point: &pb.FloatPoint{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+			}})
 	}
 
 	r := &pb.Response{

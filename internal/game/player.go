@@ -6,10 +6,10 @@ import (
 )
 
 type Player struct {
-	X, Y         float64
+	X, Y, Z      float32
 	xDest, yDest int32
-	dx, dy       float64
-	speed        float64
+	dx, dy       float32
+	speed        float32
 }
 
 func NewPlayer() *Player {
@@ -19,14 +19,14 @@ func NewPlayer() *Player {
 		Y:     1,
 	}
 }
-func (p *Player) SetDest(x, y int32) {
+
+func (p *Player) SetDest(x, y, z int32) {
 	p.xDest = x
 	p.yDest = y
 
-	vectorX := float64(p.xDest) - p.X
-	vectorY := float64(p.yDest) - p.Y
-
-	length := math.Sqrt(vectorX*vectorX + vectorY*vectorY)
+	vectorX := float32(p.xDest) - p.X
+	vectorY := float32(p.yDest) - p.Y
+	length := length(vectorX, vectorY, 0)
 
 	p.dx = vectorX / length
 	p.dy = vectorY / length
@@ -36,9 +36,10 @@ func (p *Player) move() {
 	p.X += p.dx * p.speed
 	p.Y += p.dy * p.speed
 
-	vectorX := float64(p.xDest) - p.X
-	vectorY := float64(p.yDest) - p.Y
-	length := math.Sqrt(vectorX*vectorX + vectorY*vectorY)
+	vectorX := float32(p.xDest) - p.X
+	vectorY := float32(p.yDest) - p.Y
+
+	length := length(vectorX, vectorY, 0)
 	if length < 5 {
 		p.dx = 0
 		p.dy = 0
@@ -47,4 +48,8 @@ func (p *Player) move() {
 }
 func (p *Player) Tick() {
 	defer p.move()
+}
+
+func length(x, y, z float32) float32 {
+	return float32(math.Sqrt(float64(x*x + y*y + z*z)))
 }
