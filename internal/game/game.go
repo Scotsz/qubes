@@ -6,7 +6,6 @@ import (
 	pb "qubes/api"
 	"qubes/internal/config"
 	"qubes/internal/model"
-	"qubes/internal/world"
 	"time"
 )
 
@@ -23,10 +22,10 @@ type Game struct {
 	commandQueue chan *PlayerCommand
 
 	players map[model.ClientID]*Player
-	world   *world.World
+	world   *World
 
-	worldChanges  []*world.Change
-	changeHistory map[model.TickID]*world.Change
+	worldChanges  []*Change
+	changeHistory map[model.TickID][]*Change
 }
 type PlayerCommand struct {
 	id model.ClientID
@@ -40,8 +39,10 @@ func New(cfg *config.AppConfig, sender Sender, logger *zap.SugaredLogger) *Game 
 		logger:       logger,
 		commandQueue: make(chan *PlayerCommand, 20),
 		players:      make(map[model.ClientID]*Player),
+		world:        NewWorld(256, 256),
 
-		worldChanges: make([]*world.Change, 0),
+		worldChanges:  make([]*Change, 0),
+		changeHistory: make(map[model.TickID][]*Change),
 	}
 }
 
@@ -90,7 +91,7 @@ func (g *Game) processCommands() {
 			case *pb.Command_Shoot:
 				{
 					x, y := r.Command.GetShoot().X, r.Command.GetShoot().Y
-					change := g.world.CalculateDestroyChange(world.Point{int(x), int(y), 0})
+					change := g.world.CalculateDestroyChange(Point{int(x), int(y), 0})
 					g.worldChanges = append(g.worldChanges, change)
 					g.logger.Infof("Got SHOOT ID[%v] TICK[%v]", r.id, r.Tick)
 				}
@@ -107,9 +108,14 @@ func (g *Game) processTickers() {
 	}
 }
 
+func (g *Game) moveChangesToHistory() {
+	g.changeHistory[g.tick] = g.worldChanges
+	g.worldChanges = nil
+}
+
 func (g *Game) Run() {
-	gameTicker := time.NewTicker(time.Millisecond * 25)
-	netTicker := time.NewTicker(time.Millisecond * 50)
+	gameTicker := time.NewTicker(time.Millisecond * 50)
+	netTicker := time.NewTicker(time.Millisecond * 100)
 	defer func() {
 		gameTicker.Stop()
 		netTicker.Stop()
@@ -122,13 +128,16 @@ func (g *Game) Run() {
 				g.processCommands()
 				g.processTickers()
 				g.world.ApplyChanges(g.worldChanges)
-
 				g.tick += 1
 			}
 		case <-netTicker.C:
 			{
 				//g.logger.Infof("net tick")
 				g.Broadcast(g.AllPlayersResponse())
+				if len(g.worldChanges) > 0 {
+					g.Broadcast(g.ChangesResponse(g.worldChanges))
+					g.moveChangesToHistory()
+				}
 			}
 		case <-g.stopCh:
 			{
@@ -138,6 +147,25 @@ func (g *Game) Run() {
 		}
 	}
 }
+func (g *Game) ChangesSince(tick model.TickID) []*Change {
+	//TODO
+	return nil
+}
+
+func (g *Game) ChangesResponse(cs []*Change) *pb.Response {
+	ch := make([]*pb.Change, len(cs))
+	for i, c := range cs {
+		ch[i] = c.ToProto()
+	}
+	resp := &pb.Response{
+		Tick: uint64(g.tick),
+		Payload: &pb.Payload{
+			Type: &pb.Payload_Changes{
+				Changes: &pb.Changes{Changes: ch}}}}
+	g.logger.Infof("%v", resp)
+	return resp
+}
+
 func (g *Game) AllPlayersResponse() *pb.Response {
 	resp := make([]*pb.Player, 0, len(g.players))
 	for id, p := range g.players {

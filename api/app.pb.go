@@ -25,6 +25,55 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
+type BlockType int32
+
+const (
+	BlockType_Debug BlockType = 0
+	BlockType_Air   BlockType = 1
+	BlockType_Root  BlockType = 2
+)
+
+// Enum value maps for BlockType.
+var (
+	BlockType_name = map[int32]string{
+		0: "Debug",
+		1: "Air",
+		2: "Root",
+	}
+	BlockType_value = map[string]int32{
+		"Debug": 0,
+		"Air":   1,
+		"Root":  2,
+	}
+)
+
+func (x BlockType) Enum() *BlockType {
+	p := new(BlockType)
+	*p = x
+	return p
+}
+
+func (x BlockType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BlockType) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_app_proto_enumTypes[0].Descriptor()
+}
+
+func (BlockType) Type() protoreflect.EnumType {
+	return &file_api_app_proto_enumTypes[0]
+}
+
+func (x BlockType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BlockType.Descriptor instead.
+func (BlockType) EnumDescriptor() ([]byte, []int) {
+	return file_api_app_proto_rawDescGZIP(), []int{0}
+}
+
 type Request struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -334,6 +383,7 @@ type Payload struct {
 	//	*Payload_Players
 	//	*Payload_PlayerConnect
 	//	*Payload_PlayerDisconnect
+	//	*Payload_Changes
 	Type isPayload_Type `protobuf_oneof:"type"`
 }
 
@@ -397,6 +447,13 @@ func (x *Payload) GetPlayerDisconnect() *Player {
 	return nil
 }
 
+func (x *Payload) GetChanges() *Changes {
+	if x, ok := x.GetType().(*Payload_Changes); ok {
+		return x.Changes
+	}
+	return nil
+}
+
 type isPayload_Type interface {
 	isPayload_Type()
 }
@@ -413,11 +470,17 @@ type Payload_PlayerDisconnect struct {
 	PlayerDisconnect *Player `protobuf:"bytes,3,opt,name=playerDisconnect,proto3,oneof"`
 }
 
+type Payload_Changes struct {
+	Changes *Changes `protobuf:"bytes,4,opt,name=changes,proto3,oneof"`
+}
+
 func (*Payload_Players) isPayload_Type() {}
 
 func (*Payload_PlayerConnect) isPayload_Type() {}
 
 func (*Payload_PlayerDisconnect) isPayload_Type() {}
+
+func (*Payload_Changes) isPayload_Type() {}
 
 type Player struct {
 	state         protoimpl.MessageState
@@ -529,6 +592,163 @@ func (x *AllPlayers) GetPlayer() []*Player {
 	return nil
 }
 
+type WorldPoint struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	X int32 `protobuf:"varint,1,opt,name=x,proto3" json:"x,omitempty"`
+	Y int32 `protobuf:"varint,2,opt,name=y,proto3" json:"y,omitempty"`
+}
+
+func (x *WorldPoint) Reset() {
+	*x = WorldPoint{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *WorldPoint) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorldPoint) ProtoMessage() {}
+
+func (x *WorldPoint) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorldPoint.ProtoReflect.Descriptor instead.
+func (*WorldPoint) Descriptor() ([]byte, []int) {
+	return file_api_app_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *WorldPoint) GetX() int32 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *WorldPoint) GetY() int32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
+type Changes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Changes []*Change `protobuf:"bytes,1,rep,name=changes,proto3" json:"changes,omitempty"`
+}
+
+func (x *Changes) Reset() {
+	*x = Changes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Changes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Changes) ProtoMessage() {}
+
+func (x *Changes) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Changes.ProtoReflect.Descriptor instead.
+func (*Changes) Descriptor() ([]byte, []int) {
+	return file_api_app_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *Changes) GetChanges() []*Change {
+	if x != nil {
+		return x.Changes
+	}
+	return nil
+}
+
+type Change struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Point     []*WorldPoint `protobuf:"bytes,1,rep,name=point,proto3" json:"point,omitempty"`
+	BlockType BlockType     `protobuf:"varint,2,opt,name=blockType,proto3,enum=pb.BlockType" json:"blockType,omitempty"`
+}
+
+func (x *Change) Reset() {
+	*x = Change{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Change) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Change) ProtoMessage() {}
+
+func (x *Change) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Change.ProtoReflect.Descriptor instead.
+func (*Change) Descriptor() ([]byte, []int) {
+	return file_api_app_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *Change) GetPoint() []*WorldPoint {
+	if x != nil {
+		return x.Point
+	}
+	return nil
+}
+
+func (x *Change) GetBlockType() BlockType {
+	if x != nil {
+		return x.BlockType
+	}
+	return BlockType_Debug
+}
+
 var File_api_app_proto protoreflect.FileDescriptor
 
 var file_api_app_proto_rawDesc = []byte{
@@ -552,7 +772,7 @@ var file_api_app_proto_rawDesc = []byte{
 	0x28, 0x04, 0x52, 0x04, 0x74, 0x69, 0x63, 0x6b, 0x12, 0x25, 0x0a, 0x07, 0x70, 0x61, 0x79, 0x6c,
 	0x6f, 0x61, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x62, 0x2e, 0x50,
 	0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x52, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x22,
-	0xab, 0x01, 0x0a, 0x07, 0x50, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x12, 0x2a, 0x0a, 0x07, 0x70,
+	0xd4, 0x01, 0x0a, 0x07, 0x50, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x12, 0x2a, 0x0a, 0x07, 0x70,
 	0x6c, 0x61, 0x79, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x70,
 	0x62, 0x2e, 0x41, 0x6c, 0x6c, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x73, 0x48, 0x00, 0x52, 0x07,
 	0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x73, 0x12, 0x32, 0x0a, 0x0d, 0x70, 0x6c, 0x61, 0x79, 0x65,
@@ -562,15 +782,31 @@ var file_api_app_proto_rawDesc = []byte{
 	0x6c, 0x61, 0x79, 0x65, 0x72, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x18,
 	0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x70, 0x62, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x65,
 	0x72, 0x48, 0x00, 0x52, 0x10, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x44, 0x69, 0x73, 0x63, 0x6f,
-	0x6e, 0x6e, 0x65, 0x63, 0x74, 0x42, 0x06, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x34, 0x0a,
-	0x06, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x0c, 0x0a, 0x01, 0x78, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x02, 0x52, 0x01, 0x78, 0x12, 0x0c, 0x0a, 0x01, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x02,
-	0x52, 0x01, 0x79, 0x22, 0x30, 0x0a, 0x0a, 0x41, 0x6c, 0x6c, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72,
-	0x73, 0x12, 0x22, 0x0a, 0x06, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x18, 0x01, 0x20, 0x03, 0x28,
-	0x0b, 0x32, 0x0a, 0x2e, 0x70, 0x62, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x52, 0x06, 0x70,
-	0x6c, 0x61, 0x79, 0x65, 0x72, 0x42, 0x05, 0x5a, 0x03, 0x3b, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x6e, 0x6e, 0x65, 0x63, 0x74, 0x12, 0x27, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x73,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x70, 0x62, 0x2e, 0x43, 0x68, 0x61, 0x6e,
+	0x67, 0x65, 0x73, 0x48, 0x00, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x73, 0x42, 0x06,
+	0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x34, 0x0a, 0x06, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72,
+	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
+	0x12, 0x0c, 0x0a, 0x01, 0x78, 0x18, 0x02, 0x20, 0x01, 0x28, 0x02, 0x52, 0x01, 0x78, 0x12, 0x0c,
+	0x0a, 0x01, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x02, 0x52, 0x01, 0x79, 0x22, 0x30, 0x0a, 0x0a,
+	0x41, 0x6c, 0x6c, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x73, 0x12, 0x22, 0x0a, 0x06, 0x70, 0x6c,
+	0x61, 0x79, 0x65, 0x72, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x70, 0x62, 0x2e,
+	0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x52, 0x06, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x22, 0x28,
+	0x0a, 0x0a, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x12, 0x0c, 0x0a, 0x01,
+	0x78, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x01, 0x78, 0x12, 0x0c, 0x0a, 0x01, 0x79, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x01, 0x79, 0x22, 0x2f, 0x0a, 0x07, 0x43, 0x68, 0x61, 0x6e,
+	0x67, 0x65, 0x73, 0x12, 0x24, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x73, 0x18, 0x01,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x70, 0x62, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65,
+	0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x73, 0x22, 0x5b, 0x0a, 0x06, 0x43, 0x68, 0x61,
+	0x6e, 0x67, 0x65, 0x12, 0x24, 0x0a, 0x05, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x70, 0x62, 0x2e, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x50, 0x6f, 0x69,
+	0x6e, 0x74, 0x52, 0x05, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x12, 0x2b, 0x0a, 0x09, 0x62, 0x6c, 0x6f,
+	0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0d, 0x2e, 0x70,
+	0x62, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x52, 0x09, 0x62, 0x6c, 0x6f,
+	0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x2a, 0x29, 0x0a, 0x09, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x54,
+	0x79, 0x70, 0x65, 0x12, 0x09, 0x0a, 0x05, 0x44, 0x65, 0x62, 0x75, 0x67, 0x10, 0x00, 0x12, 0x07,
+	0x0a, 0x03, 0x41, 0x69, 0x72, 0x10, 0x01, 0x12, 0x08, 0x0a, 0x04, 0x52, 0x6f, 0x6f, 0x74, 0x10,
+	0x02, 0x42, 0x05, 0x5a, 0x03, 0x3b, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -585,31 +821,40 @@ func file_api_app_proto_rawDescGZIP() []byte {
 	return file_api_app_proto_rawDescData
 }
 
-var file_api_app_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_app_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_api_app_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_api_app_proto_goTypes = []interface{}{
-	(*Request)(nil),    // 0: pb.Request
-	(*Command)(nil),    // 1: pb.Command
-	(*Shoot)(nil),      // 2: pb.Shoot
-	(*Move)(nil),       // 3: pb.Move
-	(*Response)(nil),   // 4: pb.Response
-	(*Payload)(nil),    // 5: pb.Payload
-	(*Player)(nil),     // 6: pb.Player
-	(*AllPlayers)(nil), // 7: pb.AllPlayers
+	(BlockType)(0),     // 0: pb.BlockType
+	(*Request)(nil),    // 1: pb.Request
+	(*Command)(nil),    // 2: pb.Command
+	(*Shoot)(nil),      // 3: pb.Shoot
+	(*Move)(nil),       // 4: pb.Move
+	(*Response)(nil),   // 5: pb.Response
+	(*Payload)(nil),    // 6: pb.Payload
+	(*Player)(nil),     // 7: pb.Player
+	(*AllPlayers)(nil), // 8: pb.AllPlayers
+	(*WorldPoint)(nil), // 9: pb.WorldPoint
+	(*Changes)(nil),    // 10: pb.Changes
+	(*Change)(nil),     // 11: pb.Change
 }
 var file_api_app_proto_depIdxs = []int32{
-	1, // 0: pb.Request.command:type_name -> pb.Command
-	3, // 1: pb.Command.move:type_name -> pb.Move
-	2, // 2: pb.Command.shoot:type_name -> pb.Shoot
-	5, // 3: pb.Response.payload:type_name -> pb.Payload
-	7, // 4: pb.Payload.players:type_name -> pb.AllPlayers
-	6, // 5: pb.Payload.playerConnect:type_name -> pb.Player
-	6, // 6: pb.Payload.playerDisconnect:type_name -> pb.Player
-	6, // 7: pb.AllPlayers.player:type_name -> pb.Player
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	2,  // 0: pb.Request.command:type_name -> pb.Command
+	4,  // 1: pb.Command.move:type_name -> pb.Move
+	3,  // 2: pb.Command.shoot:type_name -> pb.Shoot
+	6,  // 3: pb.Response.payload:type_name -> pb.Payload
+	8,  // 4: pb.Payload.players:type_name -> pb.AllPlayers
+	7,  // 5: pb.Payload.playerConnect:type_name -> pb.Player
+	7,  // 6: pb.Payload.playerDisconnect:type_name -> pb.Player
+	10, // 7: pb.Payload.changes:type_name -> pb.Changes
+	7,  // 8: pb.AllPlayers.player:type_name -> pb.Player
+	11, // 9: pb.Changes.changes:type_name -> pb.Change
+	9,  // 10: pb.Change.point:type_name -> pb.WorldPoint
+	0,  // 11: pb.Change.blockType:type_name -> pb.BlockType
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_api_app_proto_init() }
@@ -714,6 +959,42 @@ func file_api_app_proto_init() {
 				return nil
 			}
 		}
+		file_api_app_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WorldPoint); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Changes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Change); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_api_app_proto_msgTypes[1].OneofWrappers = []interface{}{
 		(*Command_Move)(nil),
@@ -723,19 +1004,21 @@ func file_api_app_proto_init() {
 		(*Payload_Players)(nil),
 		(*Payload_PlayerConnect)(nil),
 		(*Payload_PlayerDisconnect)(nil),
+		(*Payload_Changes)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_app_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   8,
+			NumEnums:      1,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_api_app_proto_goTypes,
 		DependencyIndexes: file_api_app_proto_depIdxs,
+		EnumInfos:         file_api_app_proto_enumTypes,
 		MessageInfos:      file_api_app_proto_msgTypes,
 	}.Build()
 	File_api_app_proto = out.File

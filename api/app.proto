@@ -6,7 +6,6 @@ message Request {
     uint64 tick = 1;
     Command command = 2;
 }
-
 message Command {
     oneof type {
         Move move = 1;
@@ -34,6 +33,7 @@ message Payload {
         AllPlayers players = 1;
         Player playerConnect = 2;
         Player playerDisconnect = 3;
+        Changes changes = 4;
     }
 }
 
@@ -45,4 +45,24 @@ message Player {
 
 message AllPlayers {
     repeated Player player = 1;
+}
+
+message WorldPoint {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+enum BlockType {
+    Debug = 0;
+    Air = 1;
+    Root = 2;
+}
+
+message Changes {
+    repeated Change changes = 1;
+}
+
+message Change {
+    repeated WorldPoint point = 1;
+    BlockType blockType = 2;
 }

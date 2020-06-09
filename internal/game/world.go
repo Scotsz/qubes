@@ -1,14 +1,9 @@
-package world
+package game
 
-type BlockType int
-
-const (
-	TypeAir BlockType = iota
-	TypeRoot
-)
+import pb "qubes/api"
 
 type Block struct {
-	blockType BlockType
+	blockType pb.BlockType
 }
 
 type World struct {
@@ -23,7 +18,7 @@ func NewWorld(w, h int) *World {
 		depth:  1,
 		blocks: make([]*Block, w*h, w*h),
 	}
-	world.Fill(Point{0, 0, 0}, Point{w - 1, h - 1, 0}, &Block{blockType: TypeAir})
+	world.Fill(Point{0, 0, 0}, Point{w - 1, h - 1, 0}, &Block{blockType: pb.BlockType_Air})
 	return world
 }
 
@@ -59,13 +54,21 @@ func (w *World) ApplyChanges(changes []*Change) {
 
 type Change struct {
 	points  []Point
-	newType BlockType
+	newType pb.BlockType
+}
+
+func (c *Change) ToProto() *pb.Change {
+	points := make([]*pb.WorldPoint, 0)
+	for _, c := range c.points {
+		points = append(points, &pb.WorldPoint{X: int32(c.X), Y: int32(c.Y)})
+	}
+	return &pb.Change{Point: points, BlockType: c.newType}
 }
 
 func (w *World) CalculateDestroyChange(p Point) *Change {
 	return &Change{
 		points:  []Point{p},
-		newType: TypeAir,
+		newType: pb.BlockType_Air,
 	}
 }
 

@@ -31,7 +31,7 @@ func NewServer(logger *zap.SugaredLogger) *Server {
 		clients:  make(map[model.ClientID]*Client),
 		mu:       sync.Mutex{},
 		logger:   logger,
-		protocol: &jsonProto{},
+		protocol: NewJsonProto(),
 	}
 }
 
@@ -97,12 +97,28 @@ type Protocol interface {
 	Unmarshal(data []byte, msg proto.Message) error
 }
 type jsonProto struct {
+	mopts  protojson.MarshalOptions
+	unopts protojson.UnmarshalOptions
+}
+
+func NewJsonProto() *jsonProto {
+	return &jsonProto{
+		mopts: protojson.MarshalOptions{
+			UseEnumNumbers:  false,
+			EmitUnpopulated: true,
+		},
+		unopts: protojson.UnmarshalOptions{
+			AllowPartial:   false,
+			DiscardUnknown: false,
+			Resolver:       nil,
+		},
+	}
 }
 
 func (j jsonProto) Marshal(msg proto.Message) ([]byte, error) {
-	return protojson.Marshal(msg)
+	return j.mopts.Marshal(msg)
 }
 
 func (j jsonProto) Unmarshal(data []byte, msg proto.Message) error {
-	return protojson.Unmarshal(data, msg)
+	return j.unopts.Unmarshal(data, msg)
 }
