@@ -3,6 +3,7 @@ package game
 import (
 	"log"
 	"math"
+	pb "qubes/api"
 )
 
 type Player struct {
@@ -52,4 +53,14 @@ func (p *Player) Tick() {
 
 func length(x, y, z float32) float32 {
 	return float32(math.Sqrt(float64(x*x + y*y + z*z)))
+}
+
+func (p *Player) ToProto() *pb.Player {
+	return &pb.Player{
+		Point: &pb.FloatPoint{
+			X: p.X,
+			Y: p.Y,
+			Z: p.Z,
+		},
+	}
 }

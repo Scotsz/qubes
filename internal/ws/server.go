@@ -3,10 +3,7 @@ package ws
 import (
 	"context"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
-	"log"
 	"nhooyr.io/websocket"
-	pb "qubes/api"
 	"qubes/internal/model"
 	"sync"
 )
@@ -14,23 +11,23 @@ import (
 type GameHandler interface {
 	OnConnect(c model.ClientID)
 	OnDisconnect(client model.ClientID)
-	OnMessage(client model.ClientID, req *pb.Request)
+	OnMessage(client model.ClientID, msg []byte)
 }
 
 type Server struct {
-	clients  map[model.ClientID]*Client
-	mu       sync.Mutex
-	logger   *zap.SugaredLogger
-	game     GameHandler
-	protocol Protocol
+	clients map[model.ClientID]*Client
+	mu      sync.Mutex
+	logger  *zap.SugaredLogger
+	game    GameHandler
+	//protocol protocol.Protocol
 }
 
 func NewServer(logger *zap.SugaredLogger) *Server {
 	return &Server{
-		clients:  make(map[model.ClientID]*Client),
-		mu:       sync.Mutex{},
-		logger:   logger,
-		protocol: NewJsonProto(),
+		clients: make(map[model.ClientID]*Client),
+		mu:      sync.Mutex{},
+		logger:  logger,
+		//protocol: protocol.NewJson(),
 	}
 }
 
@@ -64,13 +61,7 @@ func (s *Server) HandleConn(c *websocket.Conn) {
 }
 
 func (s *Server) HandleMessage(client *Client, data []byte) error {
-	req := pb.Request{}
-	err := s.protocol.Unmarshal(data, &req)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	s.game.OnMessage(client.id, &req)
+	s.game.OnMessage(client.id, data)
 	return nil
 }
 
@@ -83,10 +74,6 @@ func (s *Server) RemoveClient(client *Client) {
 	s.mu.Unlock()
 }
 
-func (s *Server) Send(id model.ClientID, msg proto.Message) {
-	data, err := s.protocol.Marshal(msg)
-	if err != nil {
-		s.logger.Info(err)
-	}
-	s.clients[id].Send(data)
+func (s *Server) Send(id model.ClientID, msg []byte) {
+	s.clients[id].Send(msg)
 }

@@ -10,7 +10,12 @@ message Command {
     oneof type {
         Move move = 1;
         Shoot shoot = 2;
+        GetChanges changes = 3;
     }
+}
+message GetChanges {
+    uint64 startTick = 1;
+    uint64 endTick = 2;
 }
 
 message Shoot {

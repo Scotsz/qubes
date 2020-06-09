@@ -1,4 +1,4 @@
-package ws
+package protocol
 
 import (
 	"google.golang.org/protobuf/encoding/protojson"
@@ -15,7 +15,7 @@ type json struct {
 	unopts protojson.UnmarshalOptions
 }
 
-func NewJsonProto() *json {
+func NewJson() *json {
 	return &json{
 		mopts: protojson.MarshalOptions{
 			UseEnumNumbers:  false,
@@ -40,10 +40,13 @@ func (j json) Unmarshal(data []byte, msg proto.Message) error {
 type protobuf struct {
 }
 
+func NewProtobuf() *protobuf {
+	return &protobuf{}
+}
 func (p protobuf) Marshal(msg proto.Message) ([]byte, error) {
-	return p.Marshal(msg)
+	return proto.Marshal(msg)
 }
 
 func (p protobuf) Unmarshal(data []byte, msg proto.Message) error {
-	return p.Unmarshal(data, msg)
+	return proto.Unmarshal(data, msg)
 }
