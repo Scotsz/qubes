@@ -1,11 +1,13 @@
 package game
 
 import (
+	"context"
 	"go.uber.org/zap"
 	pb "qubes/api"
 	"qubes/internal/config"
 	"qubes/internal/model"
 	"qubes/internal/protocol"
+	"qubes/internal/store"
 	"time"
 )
 
@@ -24,9 +26,9 @@ type Game struct {
 	players map[model.ClientID]*Player
 	world   *World
 
-	worldChanges  []*Change
-	changeHistory map[model.TickID][]byte
-	response      *ResponseBuilder
+	worldChanges     []*Change
+	changeRepository store.ChangeRepository
+	response         *ResponseBuilder
 
 	protocol protocol.Protocol
 }
@@ -35,19 +37,20 @@ type PlayerCommand struct {
 	*pb.Request
 }
 
-func New(cfg *config.AppConfig, sender Sender, logger *zap.SugaredLogger) *Game {
+func New(cfg *config.AppConfig, sender Sender, logger *zap.SugaredLogger, changerepo store.ChangeRepository) *Game {
 	return &Game{
 		cfg:          cfg,
 		sender:       sender,
 		logger:       logger,
 		commandQueue: make(chan *PlayerCommand, 20),
 		players:      make(map[model.ClientID]*Player),
-		world:        NewWorld(256, 256),
+		world:        NewWorld(256, 256, 64),
 
-		worldChanges:  make([]*Change, 0),
-		changeHistory: make(map[model.TickID][]byte),
-		protocol:      protocol.NewJson(),
+		worldChanges:     make([]*Change, 0),
+		changeRepository: changerepo,
+		protocol:         protocol.NewJson(),
 	}
+
 }
 
 func (g *Game) OnConnect(id model.ClientID) {
@@ -77,38 +80,54 @@ func (g *Game) OnMessage(id model.ClientID, msg []byte) {
 	}
 }
 
-func (g *Game) processCommands() {
+func (g *Game) processCommands(ctx context.Context) {
 	//g.logger.Info("start processing")
 	//defer g.logger.Info("end processing")
 	for {
 		select {
 		case r := <-g.commandQueue:
-			g.handleCommand(r)
+			g.handleCommand(ctx, r)
 		default:
 			return
 		}
 	}
 }
 
-func (g *Game) handleCommand(c *PlayerCommand) {
+func (g *Game) handleCommand(ctx context.Context, c *PlayerCommand) {
 	switch c.Command.Type.(type) {
+
 	case *pb.Command_Move:
-		{
-			m := c.Command.GetMove()
-			g.logger.Infof("Got MOVE[%v:%v] ID[%v] TICK[%v]", m.Point.X, m.Point.Y, c.id[:8], c.Tick)
-			g.players[c.id].SetDest(m.Point.X, m.Point.Y, m.Point.Z)
-		}
+		g.handleMove(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetMove())
 	case *pb.Command_Shoot:
-		{
-			x, y := c.Command.GetShoot().Point.X, c.Command.GetShoot().Point.Y
-			change := g.world.CalculateDestroyChange(Point{int(x), int(y), 0})
-			g.worldChanges = append(g.worldChanges, change)
-			g.logger.Infof("Got SHOOT ID[%v] TICK[%v]", c.id, c.Tick)
-		}
+		g.handleShoot(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetShoot())
+
 	case *pb.Command_Changes:
-		{
-			g.logger.Info("changes requested from %v to %v", c.Command.GetChanges().StartTick, c.Command.GetChanges().EndTick)
-		}
+		g.handleChanges(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetChanges())
+	}
+}
+
+func (g *Game) handleMove(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.Move) {
+	g.logger.Infof("Got MOVE[%v:%v] ID[%v] TICK[%v]", m.Point.X, m.Point.Y, id[:8], tick)
+	g.players[id].SetDest(m.Point.X, m.Point.Y, m.Point.Z)
+}
+
+func (g *Game) handleShoot(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.Shoot) {
+	x, y := m.Point.X, m.Point.Y
+	change := g.world.CalculateDestroyChange(Point{int(x), int(y), 0})
+	g.worldChanges = append(g.worldChanges, change)
+	g.logger.Infof("Got SHOOT ID[%v] TICK[%v]", id, tick)
+}
+
+func (g *Game) handleChanges(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.UpdateRangeRequest) {
+	start, end := model.TickID(m.StartTick), model.TickID(m.EndTick)
+	g.logger.Info("changes requested from %v to %v", start, end)
+	strings, err := g.changeRepository.GetByRangeRaw(ctx, start, end)
+	if err != nil {
+		g.logger.Info(err)
+	}
+	for _, s := range strings {
+		g.logger.Info(s)
+		g.sender.Send(id, []byte(s))
 	}
 }
 
@@ -119,12 +138,11 @@ func (g *Game) processTickers() {
 }
 
 func (g *Game) moveChangesToHistory(bytes []byte) {
-	g.changeHistory[g.tick] = bytes
-
+	g.changeRepository.StoreRaw(context.Background(), g.tick, bytes)
 	g.worldChanges = nil
 }
 
-func (g *Game) Run() {
+func (g *Game) Run(ctx context.Context) {
 	gameTicker := time.NewTicker(time.Millisecond * 50)
 	netTicker := time.NewTicker(time.Millisecond * 100)
 	defer func() {
@@ -136,7 +154,7 @@ func (g *Game) Run() {
 		case <-gameTicker.C:
 			{
 				//g.logger.Info("game tick")
-				g.processCommands()
+				g.processCommands(ctx)
 				g.processTickers()
 				g.world.ApplyChanges(g.worldChanges)
 				g.tick += 1

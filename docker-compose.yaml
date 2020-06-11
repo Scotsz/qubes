@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  app:
+    image: golang:alpine
+    #restart: on-failure
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: go run ./cmd/server
+    ports:
+      - 8000:8000
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    networks:
+      - redis-net
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    networks:
+      - redis-net
+
+networks:
+  redis-net:

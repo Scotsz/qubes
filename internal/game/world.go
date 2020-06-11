@@ -11,14 +11,15 @@ type World struct {
 	blocks               []*Block
 }
 
-func NewWorld(w, h int) *World {
+func NewWorld(w, h, d int) *World {
+	max := w * h * d
 	world := &World{
 		width:  w,
 		height: h,
-		depth:  1,
-		blocks: make([]*Block, w*h, w*h),
+		depth:  d,
+		blocks: make([]*Block, max, max),
 	}
-	world.Fill(Point{0, 0, 0}, Point{w - 1, h - 1, 0}, pb.BlockType_Air)
+	world.Fill(Point{0, 0, 0}, Point{w - 1, h - 1, d - 1}, pb.BlockType_Air)
 	return world
 }
 
@@ -39,11 +40,16 @@ func (w *World) SetFloor(block *Block) {
 }
 
 func (w *World) GetBlock(p Point) *Block {
-	return w.blocks[p.X+w.width*(p.Y+w.depth*p.Z)]
+	if !(p.X > w.width || p.Y > w.height || p.Z > w.depth) {
+		return w.blocks[p.X+w.width*p.Y+w.depth*w.height*p.Z]
+	}
+	return nil
 }
 
 func (w *World) SetBlock(p Point, block *Block) {
-	w.blocks[p.X+w.width*(p.Y+w.depth*p.Z)] = block
+	if !(p.X > w.width || p.Y > w.height || p.Z > w.depth) {
+		w.blocks[p.X+w.width*p.Y+w.depth*w.height*p.Z] = block
+	}
 }
 
 func (w *World) ApplyChanges(changes []*Change) {
