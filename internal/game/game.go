@@ -20,7 +20,6 @@ type Game struct {
 	sender       Sender
 	logger       *zap.SugaredLogger
 	tick         model.TickID
-	stopCh       chan struct{}
 	commandQueue chan *PlayerCommand
 
 	players map[model.ClientID]*Player
@@ -173,17 +172,13 @@ func (g *Game) Run(ctx context.Context) {
 					g.moveChangesToHistory(bytes)
 				}
 			}
-		case <-g.stopCh:
+		case <-ctx.Done():
 			{
 				g.logger.Info("GAME STOP")
 				break
 			}
 		}
 	}
-}
-
-func (g *Game) Stop() {
-	g.stopCh <- struct{}{}
 }
 
 func (g *Game) BroadcastRaw(bytes []byte) {
