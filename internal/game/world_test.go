@@ -26,16 +26,16 @@ func TestWorld_SetBlock(t *testing.T) {
 		{X: -2134, Y: 23134342311, Z: -5182},
 	}
 	for _, p := range valid {
-		world.SetBlock(p, &Block{blockType: pb.BlockType_Root})
+		world.SetBlock(p, pb.BlockType_Root)
 		block := world.GetBlock(p)
 		assert.NotNil(t, block)
-		assert.Equal(t, pb.BlockType_Root, block.blockType)
+		assert.Equal(t, pb.BlockType_Root, block)
 	}
 
 	for _, p := range invalid {
-		world.SetBlock(p, &Block{blockType: pb.BlockType_Root})
+		world.SetBlock(p, pb.BlockType_Root)
 		block := world.GetBlock(p)
-		assert.Nil(t, block)
+		assert.Zero(t, block)
 	}
 
 }
@@ -71,7 +71,7 @@ func world1(t *testing.T) *World {
 		{5, 2, 7},
 		{6, 2, 7},
 	}
-	w.FillPoints(points, &Block{blockType: pb.BlockType_Root})
+	w.FillPoints(points, pb.BlockType_Root)
 	return w
 }
 func world2(t *testing.T) *World {
@@ -84,7 +84,7 @@ func world2(t *testing.T) *World {
 		//{1, 1, 3},
 		//{1, 3, 2},
 	}
-	w.FillPoints(points, &Block{blockType: pb.BlockType_Root})
+	w.FillPoints(points, pb.BlockType_Root)
 	return w
 }
 func world3(t *testing.T) *World {
@@ -97,22 +97,42 @@ func world3(t *testing.T) *World {
 		{0, 2, 3},
 		{0, 1, 0},
 	}
-	w.FillPoints(points, &Block{blockType: pb.BlockType_Root})
+	w.FillPoints(points, pb.BlockType_Root)
 	return w
 }
 
+func world4(t *testing.T) *World {
+	t.Helper()
+	w := NewWorld(512, 512, 64)
+	w.Fill(Point{0, 0, 0}, Point{511, 511, 63}, pb.BlockType_Root)
+
+	w.Fill(Point{0, 0, 32}, Point{511, 511, 32}, pb.BlockType_Air)
+
+	w.SetBlock(Point{0, 0, 32}, pb.BlockType_Root)
+	return w
+}
+
+func TestWorld_DestroyBlock2(t *testing.T) {
+	w4 := world4(t)
+
+	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(Point{0, 0, 30}))
+	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(Point{0, 0, 31}))
+	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(Point{0, 0, 33}))
+
+	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(Point{0, 0, 32}))
+	assert.Equal(t, pb.BlockType_Air, w4.GetBlock(Point{1, 0, 32}))
+	assert.Equal(t, pb.BlockType_Air, w4.GetBlock(Point{1, 0, 32}))
+	assert.Equal(t, pb.BlockType_Air, w4.GetBlock(Point{1, 1, 32}))
+
+	//
+	blocks := w4.DestroyBlock(Point{0, 0, 31})
+	assert.Equal(t, 511*511*31, len(blocks))
+}
+
 func TestWorld_DestroyBlock(t *testing.T) {
-	w3 := world3(t)
-	blocks := w3.DestroyBlock(Point{0, 1, 1})
-	assert.Equal(t, 4, len(blocks), blocks)
-
-	w2 := world2(t)
-	blocks = w2.DestroyBlock(Point{1, 1, 1})
-	assert.Equal(t, 2, len(blocks), blocks)
-
 	//w1
 	w1 := world1(t)
-	blocks = w1.DestroyBlock(Point{6, 2, 5})
+	blocks := w1.DestroyBlock(Point{6, 2, 5})
 	assert.Equal(t, 1, len(blocks), blocks)
 
 	blocks = w1.DestroyBlock(Point{2, 2, 5})
@@ -129,4 +149,15 @@ func TestWorld_DestroyBlock(t *testing.T) {
 
 	blocks = w1.DestroyBlock(Point{7, 7, 7})
 	assert.Equal(t, 0, len(blocks), blocks)
+
+	//w2
+	w2 := world2(t)
+	blocks = w2.DestroyBlock(Point{1, 1, 1})
+	assert.Equal(t, 2, len(blocks), blocks)
+
+	//w3
+	w3 := world3(t)
+	blocks = w3.DestroyBlock(Point{0, 1, 1})
+	assert.Equal(t, 4, len(blocks), blocks)
+
 }

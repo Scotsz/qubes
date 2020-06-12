@@ -1,6 +1,7 @@
 package game
 
 import (
+	"log"
 	pb "qubes/api"
 )
 
@@ -8,13 +9,12 @@ type Point struct {
 	X, Y, Z int
 }
 
-type Block struct {
-	blockType pb.BlockType
-}
-
+//type Block struct {
+//	blockType pb.BlockType
+//}
 type World struct {
 	width, height, depth int
-	blocks               []*Block
+	blocks               []pb.BlockType
 	deleting             map[Point]bool //TODO: convert to []Pos
 }
 type Change struct {
@@ -36,10 +36,10 @@ func NewWorld(w, d, h int) *World {
 		width:    w,
 		height:   h,
 		depth:    d,
-		blocks:   make([]*Block, max, max),
+		blocks:   make([]pb.BlockType, max, max),
 		deleting: make(map[Point]bool),
 	}
-	world.Fill(Point{0, 0, 0}, Point{w - 1, h - 1, d - 1}, pb.BlockType_Air)
+	world.Fill(Point{0, 0, 0}, Point{w - 1, d - 1, h - 1}, pb.BlockType_Air)
 	return world
 }
 
@@ -47,13 +47,13 @@ func (w *World) Fill(start, end Point, btype pb.BlockType) {
 	for i := start.X; i <= end.X; i++ {
 		for j := start.Y; j <= end.Y; j++ {
 			for k := start.Z; k <= end.Z; k++ {
-				w.SetBlock(Point{i, j, k}, &Block{blockType: btype})
+				w.SetBlock(Point{i, j, k}, btype)
 			}
 		}
 	}
 }
 
-func (w *World) FillPoints(points []Point, block *Block) {
+func (w *World) FillPoints(points []Point, block pb.BlockType) {
 	for _, p := range points {
 		w.SetBlock(p, block)
 	}
@@ -61,28 +61,32 @@ func (w *World) FillPoints(points []Point, block *Block) {
 
 func (w *World) SetFloor(btype pb.BlockType) {
 	w.Fill(
-		Point{X: 0, Y: w.height - 1, Z: 0},
-		Point{X: w.width - 1, Y: w.height - 1, Z: 0},
+		Point{X: 0, Y: 0, Z: 0},
+		Point{X: w.width - 1, Y: w.depth - 1, Z: 0},
 		btype)
 }
 
-func (w *World) GetBlock(p Point) *Block {
+func (w *World) GetBlock(p Point) pb.BlockType {
 	if w.isValid(p) {
 		return w.blocks[w.getPos(p.X, p.Y, p.Z)]
 	}
-	return nil
+	log.Fatalf("trying to get %v", p)
+	return pb.BlockType_Debug
 }
 
-func (w *World) SetBlock(p Point, block *Block) {
+func (w *World) SetBlock(p Point, block pb.BlockType) {
 	if w.isValid(p) {
 		w.blocks[w.getPos(p.X, p.Y, p.Z)] = block
+	} else {
+		log.Fatalf("trying to set %v", p)
 	}
+
 }
 
 func (w *World) ApplyChanges(changes []*Change) {
 	for _, c := range changes {
 		for _, p := range c.points {
-			w.SetBlock(p, &Block{blockType: c.newType})
+			w.SetBlock(p, c.newType)
 		}
 	}
 }
@@ -99,11 +103,11 @@ func (w *World) isValid(p Point) bool {
 }
 
 func (w *World) getPos(x, y, z int) int {
-	return x + y*w.depth + z*w.width*w.height
+	return x + y*w.width + z*w.depth*w.width
 }
 
 func (w *World) isSolid(p Point) bool {
-	switch w.GetBlock(p).blockType {
+	switch w.GetBlock(p) {
 	case pb.BlockType_Air:
 		return false
 	}
@@ -117,7 +121,7 @@ func (w *World) DestroyBlock(p Point) []Point {
 	if !(w.isValid(p) && w.isSolid(p)) {
 		return nil
 	}
-	w.SetBlock(p, &Block{blockType: pb.BlockType_Air})
+	w.SetBlock(p, pb.BlockType_Air)
 	w.deleting[p] = true
 
 	for _, p := range neighbors(p) {
