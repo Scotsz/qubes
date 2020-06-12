@@ -15,6 +15,7 @@ type Block struct {
 type World struct {
 	width, height, depth int
 	blocks               []*Block
+	deleting             map[Point]bool //TODO: convert to []Pos
 }
 type Change struct {
 	points  []Point
@@ -29,13 +30,14 @@ func (c *Change) ToProto() *pb.Change {
 	return &pb.Change{Point: points, BlockType: c.newType}
 }
 
-func NewWorld(w, h, d int) *World {
+func NewWorld(w, d, h int) *World {
 	max := w * h * d
 	world := &World{
-		width:  w,
-		height: h,
-		depth:  d,
-		blocks: make([]*Block, max, max),
+		width:    w,
+		height:   h,
+		depth:    d,
+		blocks:   make([]*Block, max, max),
+		deleting: make(map[Point]bool),
 	}
 	world.Fill(Point{0, 0, 0}, Point{w - 1, h - 1, d - 1}, pb.BlockType_Air)
 	return world
@@ -51,10 +53,16 @@ func (w *World) Fill(start, end Point, btype pb.BlockType) {
 	}
 }
 
+func (w *World) FillPoints(points []Point, block *Block) {
+	for _, p := range points {
+		w.SetBlock(p, block)
+	}
+}
+
 func (w *World) SetFloor(btype pb.BlockType) {
 	w.Fill(
-		Point{X: 0, Y: 0, Z: w.depth - 1},
-		Point{X: w.width - 1, Y: w.height - 1, Z: w.depth - 1},
+		Point{X: 0, Y: w.height - 1, Z: 0},
+		Point{X: w.width - 1, Y: w.height - 1, Z: 0},
 		btype)
 }
 
@@ -87,11 +95,11 @@ func (w *World) CalculateDestroyChange(p Point) *Change {
 }
 
 func (w *World) isValid(p Point) bool {
-	return !(p.X > w.width || p.Y > w.height || p.Z > w.depth) && !(p.X < 0 || p.Y < 0 || p.Z < 0)
+	return !(p.X >= w.width || p.Y >= w.depth || p.Z >= w.height) && !(p.X < 0 || p.Y < 0 || p.Z < 0)
 }
 
 func (w *World) getPos(x, y, z int) int {
-	return x + y*w.width + z*w.depth*w.height
+	return x + y*w.depth + z*w.width*w.height
 }
 
 func (w *World) isSolid(p Point) bool {
@@ -103,39 +111,63 @@ func (w *World) isSolid(p Point) bool {
 }
 
 func (w *World) DestroyBlock(p Point) []Point {
-	var queue []Point
-	marked := make(map[Point]bool)
+	var c int
+	var points []Point
 
-	queue = append(queue, p)
+	if !(w.isValid(p) && w.isSolid(p)) {
+		return nil
+	}
+	w.SetBlock(p, &Block{blockType: pb.BlockType_Air})
+	w.deleting[p] = true
+
+	for _, p := range neighbors(p) {
+		if w.isValid(p) && w.isSolid(p) {
+			c += w.getConnected(p)
+		}
+	}
+
+	for p := range w.deleting {
+		points = append(points, p)
+	}
+
+	w.deleting = make(map[Point]bool)
+	return points
+}
+
+func neighbors(p Point) []Point {
+	return []Point{
+		{p.X, p.Y, p.Z - 1},
+		{p.X - 1, p.Y, p.Z},
+		{p.X, p.Y - 1, p.Z},
+		{p.X + 1, p.Y, p.Z},
+		{p.X, p.Y + 1, p.Z},
+		{p.X, p.Y, p.Z + 1},
+	}
+}
+
+func (w *World) getConnected(point Point) int {
+	queue := []Point{point}
+	marked := make(map[Point]bool)
+	marked[point] = true
 
 	for len(queue) > 0 {
 		c := queue[0]
 		queue = queue[1:]
 
-		if c.Z >= w.height-1 {
-			return nil
+		if c.Z == 0 {
+			return 0
 		}
 
-		points := []Point{
-			{c.X, c.Y, c.Z - 1},
-			{c.X - 1, c.Y, c.Z},
-			{c.X, c.Y - 1, c.Z},
-			{c.X + 1, c.Y, c.Z},
-			{c.X, c.Y + 1, c.Z},
-			{c.X, c.Y, c.Z + 1},
-		}
-
-		for _, point := range points {
-			if w.isValid(point) && w.isSolid(point) && !marked[point] {
+		for _, point := range neighbors(c) {
+			if w.isValid(point) && w.isSolid(point) && !marked[point] && !w.deleting[point] {
 				marked[point] = true
 				queue = append(queue, point)
 			}
 		}
 	}
 
-	destroyed := make([]Point, 0, len(marked))
 	for p := range marked {
-		destroyed = append(destroyed, p)
+		w.deleting[p] = true
 	}
-	return destroyed
+	return len(marked)
 }
