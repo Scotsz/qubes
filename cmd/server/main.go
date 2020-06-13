@@ -8,13 +8,14 @@ import (
 	"qubes/internal/config"
 	"qubes/internal/game"
 	"qubes/internal/http"
+	"qubes/internal/protocol"
 	"qubes/internal/store"
 	"qubes/internal/ws"
 )
 
 func main() {
-	logger, _ := zap.NewDevelopment()
-	sugared := logger.Sugar()
+	lg, _ := zap.NewDevelopment()
+	logger := lg.Sugar()
 	cfg, err := config.NewAppConfig("./configs/default.toml")
 	if err != nil {
 		log.Fatal(err)
@@ -28,16 +29,26 @@ func main() {
 	redisClient.FlushDB(ctx)
 	_, err = redisClient.Ping(ctx).Result()
 	if err != nil {
-		sugared.Fatal(err)
+		logger.Fatal(err)
 	}
 
-	changerepo := store.NewChangeRepository(redisClient)
-	wsServer := ws.NewServer(sugared)
-	g := game.New(cfg, wsServer, sugared, changerepo)
+	wsServer := ws.NewServer(logger)
+
+	worldUpdateRepo := store.NewWorldUpdateRepository(redisClient)
+	playerStore := game.NewPlayerStore()
+	tickProvider := &game.TickProvider{}
+	world := game.NewWorld(10, 10, 10)
+
+	proto := protocol.NewJson()
+
+	network := game.NewNetworkManager(worldUpdateRepo, wsServer, logger, proto, playerStore, tickProvider)
+
+	worldManager := game.NewWorldManager(world, network)
+
+	g := game.New(cfg, logger, proto, playerStore, worldManager, network, tickProvider)
 
 	wsServer.SetGame(g)
-
-	httpServer := http.New(ctx, sugared, cfg, wsServer)
+	httpServer := http.New(ctx, logger, cfg, wsServer)
 
 	go g.Run(ctx)
 

@@ -2,70 +2,70 @@ package game
 
 import (
 	"context"
+	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	pb "qubes/api"
 	"qubes/internal/config"
 	"qubes/internal/model"
 	"qubes/internal/protocol"
-	"qubes/internal/store"
+	"sync"
 	"time"
 )
 
-type Sender interface {
-	Send(id model.ClientID, msg []byte)
-}
-
 type Game struct {
-	cfg          *config.AppConfig
-	sender       Sender
-	logger       *zap.SugaredLogger
-	tick         model.TickID
+	cfg    *config.AppConfig
+	logger *zap.SugaredLogger
+
 	commandQueue chan *PlayerCommand
+	players      *PlayerStore
 
-	players map[model.ClientID]*Player
-	world   *World
+	worldManager *WorldManager
+	network      *NetworkManager
+	protocol     protocol.Protocol
 
-	worldChanges     []*Change
-	changeRepository store.ChangeRepository
-	response         *ResponseBuilder
-
-	protocol protocol.Protocol
+	tp *TickProvider
 }
+
 type PlayerCommand struct {
 	id model.ClientID
 	*pb.Request
 }
 
-func New(cfg *config.AppConfig, sender Sender, logger *zap.SugaredLogger, changerepo store.ChangeRepository) *Game {
+func New(
+	cfg *config.AppConfig,
+	logger *zap.SugaredLogger,
+	proto protocol.Protocol,
+	players *PlayerStore,
+	worldManager *WorldManager,
+	network *NetworkManager,
+	tp *TickProvider,
+
+) *Game {
 	return &Game{
 		cfg:          cfg,
-		sender:       sender,
 		logger:       logger,
 		commandQueue: make(chan *PlayerCommand, 20),
-		players:      make(map[model.ClientID]*Player),
-		world:        NewWorld(256, 256, 64),
-
-		worldChanges:     make([]*Change, 0),
-		changeRepository: changerepo,
-		protocol:         protocol.NewJson(),
+		players:      players,
+		network:      network,
+		worldManager: worldManager,
+		protocol:     proto,
+		tp:           tp,
 	}
-
 }
 
 func (g *Game) OnConnect(id model.ClientID) {
-	g.players[id] = NewPlayer()
-
-	g.Broadcast(g.response.PlayerConnected(string(id), g.tick))
+	g.players.Add(id, NewPlayer())
+	g.network.SendPlayerConnected(id, g.tp.Get())
 }
 
 func (g *Game) OnDisconnect(id model.ClientID) {
-	g.Broadcast(g.response.PlayerDisconnected(string(id), g.tick))
-	delete(g.players, id)
+	g.players.Remove(id)
+	g.network.SendPlayerDisconnected(id, g.tp.Get())
 }
 
 func (g *Game) OnMessage(id model.ClientID, msg []byte) {
 	req := pb.Request{}
-	err := g.protocol.Unmarshal(msg, &req)
+	err := g.protocol.Unmarshal(msg, &req) //TODO move to another goroutine
 
 	if err != nil {
 		g.logger.Info(err)
@@ -97,80 +97,66 @@ func (g *Game) handleCommand(ctx context.Context, c *PlayerCommand) {
 
 	case *pb.Command_Move:
 		g.handleMove(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetMove())
+
 	case *pb.Command_Shoot:
 		g.handleShoot(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetShoot())
 
 	case *pb.Command_Changes:
-		g.handleChanges(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetChanges())
+		g.handleUpdatesRequest(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetChanges())
 	}
 }
 
 func (g *Game) handleMove(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.Move) {
 	g.logger.Infof("Got MOVE[%v:%v] ID[%v] TICK[%v]", m.Point.X, m.Point.Y, id[:8], tick)
-	g.players[id].SetDest(m.Point.X, m.Point.Y, m.Point.Z)
+	player, err := g.players.Get(id)
+	if err != nil {
+		g.logger.Info("missing player")
+		return
+	}
+	player.SetDest(m.Point.X, m.Point.Y, m.Point.Z)
 }
 
 func (g *Game) handleShoot(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.Shoot) {
 	x, y := m.Point.X, m.Point.Y
-	change := g.world.CalculateDestroyChange(Point{int(x), int(y), 0})
-	g.worldChanges = append(g.worldChanges, change)
-	g.logger.Infof("Got SHOOT ID[%v] TICK[%v]", id, tick)
+	g.worldManager.TryRemove(Point{int(x), int(y), 0})
+	//
+	//change := g.world.CalculateDestroyChange(Point{int(x), int(y), 0})
+	//g.worldUpdates = append(g.worldUpdates, change)
+	//
+	//g.logger.Infof("Got SHOOT ID[%v] TICK[%v]", id, tp)
 }
 
-func (g *Game) handleChanges(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.UpdateRangeRequest) {
+func (g *Game) handleUpdatesRequest(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.UpdateRangeRequest) {
+
 	start, end := model.TickID(m.StartTick), model.TickID(m.EndTick)
 	g.logger.Info("changes requested from %v to %v", start, end)
-	strings, err := g.changeRepository.GetByRangeRaw(ctx, start, end)
-	if err != nil {
-		g.logger.Info(err)
-	}
-	for _, s := range strings {
-		g.logger.Info(s)
-		g.sender.Send(id, []byte(s))
-	}
+	g.network.SendUpdateRange(id, start, end)
+
 }
 
 func (g *Game) processTickers() {
-	for _, p := range g.players {
+	for _, p := range g.players.All() {
 		p.Tick()
 	}
 }
 
-func (g *Game) moveChangesToHistory(bytes []byte) {
-	g.changeRepository.StoreRaw(context.Background(), g.tick, bytes)
-	g.worldChanges = nil
-}
-
 func (g *Game) Run(ctx context.Context) {
 	gameTicker := time.NewTicker(time.Millisecond * 50)
-	netTicker := time.NewTicker(time.Millisecond * 100)
+	go g.worldManager.Run(ctx)
+	go g.network.Run(ctx)
+
 	defer func() {
 		gameTicker.Stop()
-		netTicker.Stop()
 	}()
 	for {
 		select {
 		case <-gameTicker.C:
 			{
-				//g.logger.Info("game tick")
+				//g.logger.Info("game tp")
 				g.processCommands(ctx)
 				g.processTickers()
-				g.world.ApplyChanges(g.worldChanges)
-				g.tick += 1
-			}
-		case <-netTicker.C:
-			{
-				//g.logger.Infof("net tick")
-				g.Broadcast(g.response.AllPlayers(g.players, g.tick))
-				if len(g.worldChanges) > 0 {
-					changes := g.response.Changes(g.worldChanges, g.tick)
-					bytes, err := g.protocol.Marshal(changes)
-					if err != nil {
-						g.logger.Error(err)
-					}
-					g.BroadcastRaw(bytes)
-					g.moveChangesToHistory(bytes)
-				}
+				//g.worldManager.ApplyUpdates(g.worldUpdates) //TODO
+				g.tp.Next()
 			}
 		case <-ctx.Done():
 			{
@@ -181,19 +167,15 @@ func (g *Game) Run(ctx context.Context) {
 	}
 }
 
-func (g *Game) BroadcastRaw(bytes []byte) {
-	for i := range g.players {
-		g.sender.Send(i, bytes)
-	}
+type TickProvider struct {
+	mu   sync.Mutex
+	tick atomic.Uint64
 }
 
-func (g *Game) Broadcast(resp *pb.Response) {
-	//g.logger.Infof("broadcasting to %v", len(g.players))
-	bytes, err := g.protocol.Marshal(resp)
-	if err != nil {
-		g.logger.Error(err)
-	}
-	for i := range g.players {
-		g.sender.Send(i, bytes)
-	}
+func (t *TickProvider) Get() model.TickID {
+	return model.TickID(t.tick.Load())
+
+}
+func (t *TickProvider) Next() {
+	t.tick.Inc()
 }

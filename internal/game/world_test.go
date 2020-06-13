@@ -81,7 +81,7 @@ func world2(t *testing.T) *World {
 		{1, 1, 0},
 		{1, 1, 1},
 		{1, 1, 2},
-		//{1, 1, 3},
+		{1, 1, 3},
 		//{1, 3, 2},
 	}
 	w.FillPoints(points, pb.BlockType_Root)
@@ -125,39 +125,52 @@ func TestWorld_DestroyBlock2(t *testing.T) {
 	assert.Equal(t, pb.BlockType_Air, w4.GetBlock(Point{1, 1, 32}))
 
 	//
-	blocks := w4.DestroyBlock(Point{0, 0, 31})
-	assert.Equal(t, 511*511*31, len(blocks))
+	//blocks := w4.DestroyBlock(Point{0, 0, 31})
+	//assert.Equal(t, 512*512*31, len(blocks))
 }
 
 func TestWorld_DestroyBlock(t *testing.T) {
-	//w1
-	w1 := world1(t)
-	blocks := w1.DestroyBlock(Point{6, 2, 5})
-	assert.Equal(t, 1, len(blocks), blocks)
+	//ctx := context.Background()
 
-	blocks = w1.DestroyBlock(Point{2, 2, 5})
-	assert.Equal(t, 8, len(blocks), blocks)
-
-	blocks = w1.DestroyBlock(Point{6, 2, 2})
-	assert.Equal(t, 1, len(blocks), blocks)
-
-	blocks = w1.DestroyBlock(Point{5, 2, 3})
-	assert.Equal(t, 3, len(blocks), blocks)
-
-	blocks = w1.DestroyBlock(Point{2, 2, 1})
-	assert.Equal(t, 6, len(blocks), blocks)
-
-	blocks = w1.DestroyBlock(Point{7, 7, 7})
-	assert.Equal(t, 0, len(blocks), blocks)
-
+	////w1
+	//w1 := world1(t)
+	//wm := NewWorldManager(w1)
+	//go wm.Run(ctx)
+	//
+	//wm.TryRemove(Point{6, 2, 5})
+	//destroyed := wm.removing
+	//assert.Equal(t, 1, destroyed)
+	//
+	//wm.TryRemove(Point{2, 2, 5})
+	//destroyed = wm.removing
+	//assert.Equal(t, 8, destroyed)
+	//
+	//wm.TryRemove(Point{6, 2, 2})
+	//destroyed = wm.removing
+	//assert.Equal(t, 1, destroyed)
+	//
+	//wm.TryRemove(Point{5, 2, 3})
+	//destroyed = wm.removing
+	//assert.Equal(t, 3, destroyed)
+	//
+	//wm.TryRemove(Point{2, 2, 1})
+	//destroyed = wm.removing
+	//assert.Equal(t, 6, destroyed)
+	//
+	//wm.TryRemove(Point{7, 7, 7})
+	//destroyed = wm.removing
+	//assert.Equal(t, 0, destroyed)
 	//w2
-	w2 := world2(t)
-	blocks = w2.DestroyBlock(Point{1, 1, 1})
-	assert.Equal(t, 2, len(blocks), blocks)
-
-	//w3
-	w3 := world3(t)
-	blocks = w3.DestroyBlock(Point{0, 1, 1})
-	assert.Equal(t, 4, len(blocks), blocks)
+	//w2 := world2(t)
+	//wm2 := NewWorldManager(w2)
+	//wm2.Run(ctx)
+	//wm2.TryRemove(Point{1, 1, 1})
+	//time.Sleep(time.Second)
+	//destroyed := wm2.removing
+	//assert.Equal(t, 3, destroyed)
+	////w3
+	//w3 := world3(t)
+	//blocks = w3.DestroyBlock(Point{0, 1, 1})
+	//assert.Equal(t, 4, len(blocks), blocks)
 
 }

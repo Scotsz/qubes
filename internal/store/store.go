@@ -11,7 +11,7 @@ type redisRepository struct {
 	db *redis.Client
 }
 
-type ChangeRepository interface {
+type WorldUpdateRepository interface {
 	StoreRaw(ctx context.Context, tick model.TickID, data []byte)
 	GetByRangeRaw(ctx context.Context, start, end model.TickID) ([]string, error)
 }
@@ -34,6 +34,6 @@ func (r redisRepository) GetByRangeRaw(ctx context.Context, start, end model.Tic
 	return res, err
 }
 
-func NewChangeRepository(db *redis.Client) ChangeRepository {
+func NewWorldUpdateRepository(db *redis.Client) WorldUpdateRepository {
 	return &redisRepository{db: db}
 }

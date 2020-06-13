@@ -18,7 +18,7 @@ func (r *ResponseBuilder) envelope(tick model.TickID, payload *pb.Payload) *pb.R
 	}
 }
 
-func (r *ResponseBuilder) Changes(cs []*Change, tick model.TickID) *pb.Response {
+func (r *ResponseBuilder) Changes(cs []*WorldUpdate, tick model.TickID) *pb.Response {
 	ch := make([]*pb.Change, len(cs))
 	for i, c := range cs {
 		ch[i] = c.ToProto()
@@ -54,6 +54,7 @@ func (r *ResponseBuilder) PlayerConnected(id string, tick model.TickID) *pb.Resp
 
 	return r.envelope(tick, payload)
 }
+
 func (r *ResponseBuilder) PlayerDisconnected(id string, tick model.TickID) *pb.Response {
 	payload := &pb.Payload{
 		Type: &pb.Payload_PlayerDisconnect{
