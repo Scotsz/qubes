@@ -4,14 +4,11 @@ import "app.proto";
 
 message Request {
     uint64 tick = 1;
-    Command command = 2;
-}
-message Command {
-    oneof type {
-        Move move = 1;
-        Shoot shoot = 2;
-        UpdateRangeRequest changes = 3;
-        ConnectRequest connect = 4;
+    oneof command {
+        Move move = 2;
+        Shoot shoot = 3;
+        UpdateRangeRequest changes = 4;
+        ConnectRequest connect = 5;
     }
 }
 

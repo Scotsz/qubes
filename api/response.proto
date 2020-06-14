@@ -2,23 +2,17 @@ syntax = "proto3";
 option go_package = ".;api";
 import "app.proto";
 
-message Response {
-    uint64 tick = 1;
-    Payload payload = 2;
-}
-
-message Payload {
-    oneof type {
-        AllPlayers players = 1;
-        Player playerConnect = 2;
-        Player playerDisconnect = 3;
-        Changes changes = 4;
-    }
-}
-
 message Player {
     string id = 1;
-    FloatPoint point = 2;
+    FloatPoint pos = 2;
+}
+
+message PlayerConnected {
+    Player player = 1;
+
+}
+message PlayerDisconnected {
+    string id = 1;
 }
 
 message AllPlayers {

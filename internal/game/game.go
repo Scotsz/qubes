@@ -23,6 +23,8 @@ type Game struct {
 	network      *NetworkManager
 	protocol     protocol.Protocol
 
+	handler CommandHandler
+
 	tp *TickProvider
 }
 
@@ -72,7 +74,7 @@ func (g *Game) OnMessage(id model.ClientID, msg []byte) {
 		return
 	}
 
-	g.logger.Infof("got message %T", req.Command.Type)
+	g.logger.Infof("got message %T", req.Command)
 	g.commandQueue <- &PlayerCommand{
 		id:      id,
 		Request: &req,
@@ -85,54 +87,11 @@ func (g *Game) processCommands(ctx context.Context) {
 	for {
 		select {
 		case r := <-g.commandQueue:
-			g.handleCommand(ctx, r)
+			g.handler.Handle(ctx, g.tp.Get(), r)
 		default:
 			return
 		}
 	}
-}
-
-func (g *Game) handleCommand(ctx context.Context, c *PlayerCommand) {
-	switch c.Command.Type.(type) {
-
-	case *pb.Command_Move:
-		g.handleMove(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetMove())
-
-	case *pb.Command_Shoot:
-		g.handleShoot(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetShoot())
-
-	case *pb.Command_Changes:
-		g.handleUpdatesRequest(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetChanges())
-	case *pb.Command_Connect:
-		{
-			g.logger.Infof("info got connect uname:%v", c.GetCommand().GetConnect().Username)
-		}
-	}
-
-}
-
-func (g *Game) handleMove(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.Move) {
-	g.logger.Infof("Got MOVE[%v:%v] ID[%v] TICK[%v]", m.Point.X, m.Point.Y, id[:8], tick)
-	player, err := g.players.Get(id)
-	if err != nil {
-		g.logger.Info("missing player")
-		return
-	}
-	player.SetDest(m.Point.X, m.Point.Y, m.Point.Z)
-}
-
-func (g *Game) handleShoot(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.Shoot) {
-	x, y, z := m.Point.X, m.Point.Y, m.Point.Z
-	g.worldManager.TryRemove(Point{int(x), int(y), int(z)})
-	g.logger.Infof("Got SHOOT ID[%v] TICK[%v]", id, g.tp.Get())
-}
-
-func (g *Game) handleUpdatesRequest(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.UpdateRangeRequest) {
-
-	start, end := model.TickID(m.StartTick), model.TickID(m.EndTick)
-	g.logger.Info("changes requested from %v to %v", start, end)
-	g.network.SendUpdateRange(ctx, id, start, end)
-
 }
 
 func (g *Game) processTickers() {

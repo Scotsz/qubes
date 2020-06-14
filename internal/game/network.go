@@ -3,6 +3,7 @@ package game
 import (
 	"context"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
 	pb "qubes/internal/api"
 	"qubes/internal/model"
 	"qubes/internal/protocol"
@@ -60,7 +61,7 @@ func (n *NetworkManager) Run(ctx context.Context) {
 			n.Broadcast(n.response.AllPlayers(n.players.All(), gameTick))
 			if len(n.currentUpdates) > 0 {
 				n.logger.Info("BROACASTING UPDATES")
-				changes := n.response.Changes(n.currentUpdates, gameTick)
+				changes := n.response.WorldUpdates(n.currentUpdates, gameTick)
 				bytes, err := n.protocol.Marshal(changes)
 				if err != nil {
 					n.logger.Error(err)
@@ -114,7 +115,7 @@ func (n *NetworkManager) BroadcastRaw(bytes []byte) {
 	}
 }
 
-func (n *NetworkManager) Broadcast(resp *pb.Response) {
+func (n *NetworkManager) Broadcast(resp proto.Message) {
 	//g.logger.Infof("broadcasting to %v", len(g.players))
 	bytes, err := n.protocol.Marshal(resp)
 	if err != nil {
