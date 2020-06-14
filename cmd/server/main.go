@@ -38,12 +38,11 @@ func main() {
 
 	proto := protocol.NewJson()
 
-	wsServer := ws.NewServer(logger)
+	wsServer := ws.NewServer(logger, proto)
 	network := game.NewNetworkManager(worldUpdateRepo, wsServer, logger, proto, playerStore, tickProvider)
 	worldManager := game.NewWorldManager(logger, network).WithTestWorld()
 
-	g := game.New(cfg, logger, proto, playerStore, worldManager, network, tickProvider)
-
+	g := game.New(cfg, logger, playerStore, worldManager, network, tickProvider)
 	wsServer.SetGame(g)
 	httpServer := http.New(ctx, logger, cfg, wsServer)
 

@@ -16,7 +16,8 @@ message PlayerDisconnected {
 }
 
 message AllPlayers {
-    repeated Player players = 1;
+    uint64 tick = 1;
+    repeated Player players = 2;
 }
 
 message Changes {

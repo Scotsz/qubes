@@ -47,7 +47,7 @@ func (p *Player) move() {
 
 }
 func (p *Player) Tick() {
-	defer p.move()
+	p.move()
 }
 
 func length(x, y, z float32) float32 {

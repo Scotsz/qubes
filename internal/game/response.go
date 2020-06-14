@@ -29,7 +29,7 @@ func (r *ResponseBuilder) AllPlayers(players map[model.ClientID]*Player, tick mo
 			Pos: &pb.FloatPoint{X: p.X, Y: p.Y, Z: p.Z},
 		}
 	}
-	return &pb.AllPlayers{Players: pbplayers}
+	return &pb.AllPlayers{Tick: tick.ToUint64(), Players: pbplayers}
 }
 
 func (r *ResponseBuilder) PlayerConnected(id string, tick model.TickID) *pb.PlayerConnected {

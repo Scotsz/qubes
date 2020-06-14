@@ -13,6 +13,10 @@ message WorldPoint {
     int32 z = 3;
 }
 
+message Tick {
+    uint64 tick = 1;
+}
+
 enum BlockType {
     Debug = 0;
     Air = 1;

@@ -4,28 +4,32 @@ import (
 	"context"
 	"go.uber.org/zap"
 	"nhooyr.io/websocket"
+	pb "qubes/internal/api"
 	"qubes/internal/model"
+	"qubes/internal/protocol"
 	"sync"
 )
 
 type GameHandler interface {
-	OnConnect(c model.ClientID)
-	OnDisconnect(client model.ClientID)
-	OnMessage(client model.ClientID, msg []byte)
+	Connect(id model.ClientID)
+	Disconnect(id model.ClientID)
+	HandleRequest(id model.ClientID, req *pb.Request)
 }
 
 type Server struct {
-	clients map[model.ClientID]*Client
-	mu      sync.Mutex
-	logger  *zap.SugaredLogger
-	game    GameHandler
+	clients  map[model.ClientID]*Client
+	mu       sync.Mutex
+	logger   *zap.SugaredLogger
+	game     GameHandler
+	protocol protocol.Protocol
 }
 
-func NewServer(logger *zap.SugaredLogger) *Server {
+func NewServer(logger *zap.SugaredLogger, protocol protocol.Protocol) *Server {
 	return &Server{
-		clients: make(map[model.ClientID]*Client),
-		mu:      sync.Mutex{},
-		logger:  logger,
+		clients:  make(map[model.ClientID]*Client),
+		mu:       sync.Mutex{},
+		logger:   logger,
+		protocol: protocol,
 	}
 }
 
@@ -40,7 +44,7 @@ func (s *Server) AddClient(client *Client) {
 	s.clients[client.id] = client
 	s.mu.Unlock()
 
-	s.game.OnConnect(client.id)
+	s.game.Connect(client.id)
 
 }
 func (s *Server) HandleConn(c *websocket.Conn) {
@@ -58,14 +62,23 @@ func (s *Server) HandleConn(c *websocket.Conn) {
 
 }
 
-func (s *Server) HandleMessage(client *Client, data []byte) error {
-	s.game.OnMessage(client.id, data)
+func (s *Server) HandleMessage(client *Client, msg []byte) error {
+	req := &pb.Request{}
+	err := s.protocol.Unmarshal(msg, req)
+
+	if err != nil {
+		s.logger.Info(err)
+		return err
+	}
+	s.game.HandleRequest(client.id, req)
+
+	s.logger.Infof("got message %T", req.Command)
 	return nil
 }
 
 func (s *Server) RemoveClient(client *Client) {
 	s.logger.Infof("removing client %v", client.id)
-	s.game.OnDisconnect(client.id)
+	s.game.Disconnect(client.id)
 
 	s.mu.Lock()
 	delete(s.clients, client.id)
