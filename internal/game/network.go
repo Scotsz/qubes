@@ -3,7 +3,7 @@ package game
 import (
 	"context"
 	"go.uber.org/zap"
-	pb "qubes/api"
+	pb "qubes/internal/api"
 	"qubes/internal/model"
 	"qubes/internal/protocol"
 	"qubes/internal/store"
@@ -15,8 +15,8 @@ type Sender interface {
 }
 
 type NetworkManager struct {
-	worldUpdates     []*WorldUpdate
-	changeRepository store.WorldUpdateRepository
+	currentUpdates   []*WorldUpdate
+	updateRepository store.WorldUpdateRepository
 
 	sender Sender
 	logger *zap.SugaredLogger
@@ -37,8 +37,8 @@ func NewNetworkManager(
 
 ) *NetworkManager {
 	return &NetworkManager{
-		worldUpdates:     make([]*WorldUpdate, 0),
-		changeRepository: worldUpdateRepo,
+		currentUpdates:   make([]*WorldUpdate, 0),
+		updateRepository: worldUpdateRepo,
 		sender:           sender,
 		logger:           logger,
 		response:         nil,
@@ -58,9 +58,9 @@ func (n *NetworkManager) Run(ctx context.Context) {
 			gameTick := n.tp.Get()
 
 			n.Broadcast(n.response.AllPlayers(n.players.All(), gameTick))
-			if len(n.worldUpdates) > 0 {
+			if len(n.currentUpdates) > 0 {
 				n.logger.Info("BROACASTING UPDATES")
-				changes := n.response.Changes(n.worldUpdates, gameTick)
+				changes := n.response.Changes(n.currentUpdates, gameTick)
 				bytes, err := n.protocol.Marshal(changes)
 				if err != nil {
 					n.logger.Error(err)
@@ -72,16 +72,15 @@ func (n *NetworkManager) Run(ctx context.Context) {
 	}
 }
 
-func (n *NetworkManager) SendUpdateRange(player model.ClientID, start model.TickID, end model.TickID) {
-	//TODO
-	//strings, err := g.changeRepository.GetByRangeRaw(ctx, start, end)
-	//if err != nil {
-	//	g.logger.Info(err)
-	//}
-	//for _, s := range strings {
-	//	g.logger.Info(s)
-	//	g.sender.Send(id, []byte(s))
-	//}
+func (n *NetworkManager) SendUpdateRange(ctx context.Context, id model.ClientID, start model.TickID, end model.TickID) {
+	strings, err := n.updateRepository.GetByRangeRaw(ctx, start, end)
+	if err != nil {
+		n.logger.Info(err)
+		return
+	}
+	for _, s := range strings {
+		n.sender.Send(id, []byte(s))
+	}
 }
 
 func (n *NetworkManager) SendWorldUpdate(points []Point, bt pb.BlockType) {
@@ -91,7 +90,7 @@ func (n *NetworkManager) SendWorldUpdate(points []Point, bt pb.BlockType) {
 			points:  points,
 			newType: bt,
 		}
-		n.worldUpdates = append(n.worldUpdates, wu)
+		n.currentUpdates = append(n.currentUpdates, wu)
 	} else {
 		n.logger.Info("updates are nil wtf")
 	}
@@ -105,8 +104,8 @@ func (n *NetworkManager) SendPlayerDisconnected(id model.ClientID, tick model.Ti
 }
 
 func (n *NetworkManager) moveChangesToHistory(bytes []byte) {
-	n.changeRepository.StoreRaw(context.Background(), n.tp.Get(), bytes)
-	n.worldUpdates = nil
+	n.updateRepository.StoreRaw(context.Background(), n.tp.Get(), bytes)
+	n.currentUpdates = nil
 }
 
 func (n *NetworkManager) BroadcastRaw(bytes []byte) {

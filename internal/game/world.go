@@ -1,7 +1,8 @@
 package game
 
 import (
-	pb "qubes/api"
+	"context"
+	pb "qubes/internal/api"
 )
 
 type Point struct {
@@ -96,4 +97,108 @@ func (w *World) isSolid(p Point) bool {
 		return false
 	}
 	return true
+}
+
+func (w *World) destroyBlock(ctx context.Context, p Point) []Point {
+	var c int
+
+	if !(w.isValid(p) && w.isSolid(p)) {
+		return nil
+	}
+	if len(w.solidNeighbors(p)) > 2 {
+		return []Point{p}
+	}
+
+	w.SetBlock(p, pb.BlockType_Air)
+
+	deleting := make(map[Point]bool)
+	grounded := make(map[Point]bool)
+	deleting[p] = true
+
+	for _, p := range w.solidNeighbors(p) {
+		c += w.getConnected(ctx, p, deleting, grounded)
+	}
+	points := make([]Point, 0)
+	for p := range deleting {
+		points = append(points, p)
+	}
+	return points
+}
+
+func (w *World) getConnected(ctx context.Context, point Point, deleting map[Point]bool, grounded map[Point]bool) int {
+	queue := []Point{point}
+
+	marked := make(map[Point]bool)
+	marked[point] = true
+	for len(queue) > 0 {
+		select {
+		case <-ctx.Done():
+			return len(marked)
+		default:
+		}
+
+		c := queue[0]
+		queue = queue[1:]
+		marked[c] = true
+		if c.Z == 0 {
+			for p := range marked {
+				grounded[p] = true
+			}
+			return 0
+		}
+
+		for _, p := range neighbors(c) {
+			if w.isValid(p) && w.isSolid(p) && !marked[p] {
+
+				if grounded[p] {
+					for m := range marked {
+						grounded[m] = true
+					}
+					return 0
+				}
+				marked[p] = true
+				queue = append(queue, p)
+			}
+		}
+	}
+
+	for p := range marked {
+		deleting[p] = true
+	}
+	return len(marked)
+}
+
+func GetTestWorld() *World {
+	w := NewWorld(8, 8, 8)
+	points := []Point{
+		{1, 1, 0},
+		{2, 1, 0},
+		{1, 2, 0},
+		{2, 2, 0},
+		{6, 2, 0},
+		{1, 3, 0},
+		{2, 3, 0},
+		{2, 2, 1}, //5 out=6
+		{6, 2, 1},
+		{2, 2, 2},
+		{6, 2, 2}, //3 out=1
+		{2, 2, 3},
+		{3, 2, 3},
+		{4, 2, 3},
+		{5, 2, 3}, //4 out=3
+		{6, 2, 3},
+		{2, 2, 4},
+		{6, 2, 4},
+		{2, 2, 5}, //2 out=8
+		{6, 2, 5}, //1 out=1
+		{2, 2, 6},
+		{6, 2, 6},
+		{2, 2, 7},
+		{3, 2, 7},
+		{4, 2, 7},
+		{5, 2, 7},
+		{6, 2, 7},
+	}
+	w.FillPoints(points, pb.BlockType_Root)
+	return w
 }

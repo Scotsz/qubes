@@ -1,54 +1,6 @@
 syntax = "proto3";
-option go_package = ";pb";
-package pb;
+option go_package = ".;api";
 
-message Request {
-    uint64 tick = 1;
-    Command command = 2;
-}
-message Command {
-    oneof type {
-        Move move = 1;
-        Shoot shoot = 2;
-        UpdateRangeRequest changes = 3;
-    }
-}
-
-message UpdateRangeRequest {
-    uint64 startTick = 1;
-    uint64 endTick = 2;
-}
-
-message Shoot {
-    WorldPoint point = 1;
-}
-
-message Move {
-    WorldPoint point = 1;
-}
-
-message Response {
-    uint64 tick = 1;
-    Payload payload = 2;
-}
-
-message Payload {
-    oneof type {
-        AllPlayers players = 1;
-        Player playerConnect = 2;
-        Player playerDisconnect = 3;
-        Changes changes = 4;
-    }
-}
-
-message Player {
-    string id = 1;
-    FloatPoint point = 2;
-}
-
-message AllPlayers {
-    repeated Player player = 1;
-}
 message FloatPoint {
     float x = 1;
     float y = 2;
@@ -67,11 +19,3 @@ enum BlockType {
     Root = 2;
 }
 
-message Changes {
-    repeated Change changes = 1;
-}
-
-message Change {
-    repeated WorldPoint point = 1;
-    BlockType blockType = 2;
-}

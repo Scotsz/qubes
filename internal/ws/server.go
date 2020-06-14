@@ -19,7 +19,6 @@ type Server struct {
 	mu      sync.Mutex
 	logger  *zap.SugaredLogger
 	game    GameHandler
-	//protocol protocol.Protocol
 }
 
 func NewServer(logger *zap.SugaredLogger) *Server {
@@ -27,7 +26,6 @@ func NewServer(logger *zap.SugaredLogger) *Server {
 		clients: make(map[model.ClientID]*Client),
 		mu:      sync.Mutex{},
 		logger:  logger,
-		//protocol: protocol.NewJson(),
 	}
 }
 

@@ -3,7 +3,7 @@ package game
 import (
 	"log"
 	"math"
-	pb "qubes/api"
+	pb "qubes/internal/api"
 )
 
 type Player struct {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
-	pb "qubes/api"
+	pb "qubes/internal/api"
 	"qubes/internal/config"
 	"qubes/internal/model"
 	"qubes/internal/protocol"
@@ -103,7 +103,12 @@ func (g *Game) handleCommand(ctx context.Context, c *PlayerCommand) {
 
 	case *pb.Command_Changes:
 		g.handleUpdatesRequest(ctx, c.id, model.TickID(c.Tick), c.GetCommand().GetChanges())
+	case *pb.Command_Connect:
+		{
+			g.logger.Infof("info got connect uname:%v", c.GetCommand().GetConnect().Username)
+		}
 	}
+
 }
 
 func (g *Game) handleMove(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.Move) {
@@ -117,20 +122,16 @@ func (g *Game) handleMove(ctx context.Context, id model.ClientID, tick model.Tic
 }
 
 func (g *Game) handleShoot(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.Shoot) {
-	x, y := m.Point.X, m.Point.Y
-	g.worldManager.TryRemove(Point{int(x), int(y), 0})
-	//
-	//change := g.world.CalculateDestroyChange(Point{int(x), int(y), 0})
-	//g.worldUpdates = append(g.worldUpdates, change)
-	//
-	//g.logger.Infof("Got SHOOT ID[%v] TICK[%v]", id, tp)
+	x, y, z := m.Point.X, m.Point.Y, m.Point.Z
+	g.worldManager.TryRemove(Point{int(x), int(y), int(z)})
+	g.logger.Infof("Got SHOOT ID[%v] TICK[%v]", id, g.tp.Get())
 }
 
 func (g *Game) handleUpdatesRequest(ctx context.Context, id model.ClientID, tick model.TickID, m *pb.UpdateRangeRequest) {
 
 	start, end := model.TickID(m.StartTick), model.TickID(m.EndTick)
 	g.logger.Info("changes requested from %v to %v", start, end)
-	g.network.SendUpdateRange(id, start, end)
+	g.network.SendUpdateRange(ctx, id, start, end)
 
 }
 

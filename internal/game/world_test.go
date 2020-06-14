@@ -2,7 +2,7 @@ package game
 
 import (
 	"github.com/stretchr/testify/assert"
-	pb "qubes/api"
+	pb "qubes/internal/api"
 	"testing"
 )
 

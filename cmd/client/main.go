@@ -5,7 +5,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"log"
 	"nhooyr.io/websocket"
-	pb "qubes/api"
+	pb "qubes/internal/api"
 	"time"
 )
 

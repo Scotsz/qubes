@@ -1,7 +1,7 @@
 package game
 
 import (
-	pb "qubes/api"
+	pb "qubes/internal/api"
 	"qubes/internal/model"
 )
 
@@ -41,7 +41,7 @@ func (r *ResponseBuilder) AllPlayers(players map[model.ClientID]*Player, tick mo
 
 	payload := &pb.Payload{
 		Type: &pb.Payload_Players{
-			Players: &pb.AllPlayers{Player: pbplayers}}}
+			Players: &pb.AllPlayers{Players: pbplayers}}}
 
 	return r.envelope(tick, payload)
 }

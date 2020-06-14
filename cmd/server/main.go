@@ -32,18 +32,15 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	wsServer := ws.NewServer(logger)
-
 	worldUpdateRepo := store.NewWorldUpdateRepository(redisClient)
 	playerStore := game.NewPlayerStore()
 	tickProvider := &game.TickProvider{}
-	world := game.NewWorld(10, 10, 10)
 
 	proto := protocol.NewJson()
 
+	wsServer := ws.NewServer(logger)
 	network := game.NewNetworkManager(worldUpdateRepo, wsServer, logger, proto, playerStore, tickProvider)
-
-	worldManager := game.NewWorldManager(world, network)
+	worldManager := game.NewWorldManager(logger, network).WithTestWorld()
 
 	g := game.New(cfg, logger, proto, playerStore, worldManager, network, tickProvider)
 
