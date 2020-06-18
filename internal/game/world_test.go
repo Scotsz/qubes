@@ -137,34 +137,34 @@ func TestWorld_DestroyBlock(t *testing.T) {
 	//wm := NewWorldManager(w1)
 	//go wm.Run(ctx)
 	//
-	//wm.TryRemove(Point{6, 2, 5})
+	//wm.RemoveBlock(Point{6, 2, 5})
 	//destroyed := wm.removing
 	//assert.Equal(t, 1, destroyed)
 	//
-	//wm.TryRemove(Point{2, 2, 5})
+	//wm.RemoveBlock(Point{2, 2, 5})
 	//destroyed = wm.removing
 	//assert.Equal(t, 8, destroyed)
 	//
-	//wm.TryRemove(Point{6, 2, 2})
+	//wm.RemoveBlock(Point{6, 2, 2})
 	//destroyed = wm.removing
 	//assert.Equal(t, 1, destroyed)
 	//
-	//wm.TryRemove(Point{5, 2, 3})
+	//wm.RemoveBlock(Point{5, 2, 3})
 	//destroyed = wm.removing
 	//assert.Equal(t, 3, destroyed)
 	//
-	//wm.TryRemove(Point{2, 2, 1})
+	//wm.RemoveBlock(Point{2, 2, 1})
 	//destroyed = wm.removing
 	//assert.Equal(t, 6, destroyed)
 	//
-	//wm.TryRemove(Point{7, 7, 7})
+	//wm.RemoveBlock(Point{7, 7, 7})
 	//destroyed = wm.removing
 	//assert.Equal(t, 0, destroyed)
 	//w2
 	//w2 := world2(t)
 	//wm2 := NewWorldManager(w2)
 	//wm2.Run(ctx)
-	//wm2.TryRemove(Point{1, 1, 1})
+	//wm2.RemoveBlock(Point{1, 1, 1})
 	//time.Sleep(time.Second)
 	//destroyed := wm2.removing
 	//assert.Equal(t, 3, destroyed)

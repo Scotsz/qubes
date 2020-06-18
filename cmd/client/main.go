@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"google.golang.org/protobuf/proto"
+	"fmt"
+	"google.golang.org/protobuf/encoding/protojson"
 	"log"
 	"nhooyr.io/websocket"
 	pb "qubes/internal/api"
@@ -18,39 +19,26 @@ func main() {
 	}
 	defer c.Close(websocket.StatusInternalError, "the sky is falling")
 
-	err = send(ctx, makeMove(), c)
-	if err != nil {
-		log.Println(err)
+	for i := 1; i < 7; i++ {
+		for j := 1; j <= 3; j++ {
+			send(ctx, shoot(j*2-1, 1, i), c)
+			fmt.Printf("%v:%v:%v\n", j*2+1, 1, i)
+			time.Sleep(time.Millisecond * 100)
+		}
 	}
 
-	time.Sleep(time.Second * 2)
-	err = send(ctx, makeShoot(), c)
-
-	time.Sleep(time.Second * 10)
-	c.Close(websocket.StatusNormalClosure, "")
 }
 
+func shoot(x, y, z int) *pb.Request {
+	return &pb.Request{
+		Tick:    0,
+		Command: &pb.Request_Shoot{Shoot: &pb.Shoot{Point: &pb.WorldPoint{X: int32(x), Y: int32(y), Z: int32(z)}}},
+	}
+}
 func send(ctx context.Context, request *pb.Request, c *websocket.Conn) error {
-	data, err := proto.Marshal(request)
+	data, err := protojson.Marshal(request)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return c.Write(ctx, websocket.MessageBinary, data)
-}
-
-func makeReq() *pb.Request {
-	return &pb.Request{
-		Tick:    14,
-		Command: &pb.Command{},
-	}
-}
-func makeMove() *pb.Request {
-	req := makeReq()
-	return req
-}
-
-func makeShoot() *pb.Request {
-	req := makeReq()
-	req.Command.Type = &pb.Command_Shoot{Shoot: &pb.Shoot{}}
-	return req
 }

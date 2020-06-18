@@ -13,13 +13,16 @@ message WorldPoint {
     int32 z = 3;
 }
 
-message Tick {
-    uint64 tick = 1;
-}
-
 enum BlockType {
     Debug = 0;
     Air = 1;
     Root = 2;
 }
 
+message World {
+    repeated Block blocks = 1;
+}
+message Block {
+    WorldPoint point = 1;
+    BlockType blockType = 2;
+}

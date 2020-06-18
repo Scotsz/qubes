@@ -200,16 +200,16 @@ func (x *WorldPoint) GetZ() int32 {
 	return 0
 }
 
-type Tick struct {
+type World struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Tick uint64 `protobuf:"varint,1,opt,name=tick,proto3" json:"tick,omitempty"`
+	Blocks []*Block `protobuf:"bytes,1,rep,name=blocks,proto3" json:"blocks,omitempty"`
 }
 
-func (x *Tick) Reset() {
-	*x = Tick{}
+func (x *World) Reset() {
+	*x = World{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_app_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -217,13 +217,13 @@ func (x *Tick) Reset() {
 	}
 }
 
-func (x *Tick) String() string {
+func (x *World) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Tick) ProtoMessage() {}
+func (*World) ProtoMessage() {}
 
-func (x *Tick) ProtoReflect() protoreflect.Message {
+func (x *World) ProtoReflect() protoreflect.Message {
 	mi := &file_app_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -235,16 +235,71 @@ func (x *Tick) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Tick.ProtoReflect.Descriptor instead.
-func (*Tick) Descriptor() ([]byte, []int) {
+// Deprecated: Use World.ProtoReflect.Descriptor instead.
+func (*World) Descriptor() ([]byte, []int) {
 	return file_app_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *Tick) GetTick() uint64 {
+func (x *World) GetBlocks() []*Block {
 	if x != nil {
-		return x.Tick
+		return x.Blocks
 	}
-	return 0
+	return nil
+}
+
+type Block struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Point     *WorldPoint `protobuf:"bytes,1,opt,name=point,proto3" json:"point,omitempty"`
+	BlockType BlockType   `protobuf:"varint,2,opt,name=blockType,proto3,enum=BlockType" json:"blockType,omitempty"`
+}
+
+func (x *Block) Reset() {
+	*x = Block{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_app_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Block) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Block) ProtoMessage() {}
+
+func (x *Block) ProtoReflect() protoreflect.Message {
+	mi := &file_app_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Block.ProtoReflect.Descriptor instead.
+func (*Block) Descriptor() ([]byte, []int) {
+	return file_app_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Block) GetPoint() *WorldPoint {
+	if x != nil {
+		return x.Point
+	}
+	return nil
+}
+
+func (x *Block) GetBlockType() BlockType {
+	if x != nil {
+		return x.BlockType
+	}
+	return BlockType_Debug
 }
 
 var File_app_proto protoreflect.FileDescriptor
@@ -257,13 +312,19 @@ var file_app_proto_rawDesc = []byte{
 	0x52, 0x01, 0x7a, 0x22, 0x36, 0x0a, 0x0a, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x50, 0x6f, 0x69, 0x6e,
 	0x74, 0x12, 0x0c, 0x0a, 0x01, 0x78, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x01, 0x78, 0x12,
 	0x0c, 0x0a, 0x01, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x01, 0x79, 0x12, 0x0c, 0x0a,
-	0x01, 0x7a, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x01, 0x7a, 0x22, 0x1a, 0x0a, 0x04, 0x54,
-	0x69, 0x63, 0x6b, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x69, 0x63, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x04, 0x52, 0x04, 0x74, 0x69, 0x63, 0x6b, 0x2a, 0x29, 0x0a, 0x09, 0x42, 0x6c, 0x6f, 0x63, 0x6b,
-	0x54, 0x79, 0x70, 0x65, 0x12, 0x09, 0x0a, 0x05, 0x44, 0x65, 0x62, 0x75, 0x67, 0x10, 0x00, 0x12,
-	0x07, 0x0a, 0x03, 0x41, 0x69, 0x72, 0x10, 0x01, 0x12, 0x08, 0x0a, 0x04, 0x52, 0x6f, 0x6f, 0x74,
-	0x10, 0x02, 0x42, 0x07, 0x5a, 0x05, 0x2e, 0x3b, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x01, 0x7a, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x01, 0x7a, 0x22, 0x27, 0x0a, 0x05, 0x57,
+	0x6f, 0x72, 0x6c, 0x64, 0x12, 0x1e, 0x0a, 0x06, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x18, 0x01,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x06, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x52, 0x06, 0x62, 0x6c,
+	0x6f, 0x63, 0x6b, 0x73, 0x22, 0x54, 0x0a, 0x05, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x12, 0x21, 0x0a,
+	0x05, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x57,
+	0x6f, 0x72, 0x6c, 0x64, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x52, 0x05, 0x70, 0x6f, 0x69, 0x6e, 0x74,
+	0x12, 0x28, 0x0a, 0x09, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x0e, 0x32, 0x0a, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x52,
+	0x09, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x2a, 0x29, 0x0a, 0x09, 0x42, 0x6c,
+	0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x12, 0x09, 0x0a, 0x05, 0x44, 0x65, 0x62, 0x75, 0x67,
+	0x10, 0x00, 0x12, 0x07, 0x0a, 0x03, 0x41, 0x69, 0x72, 0x10, 0x01, 0x12, 0x08, 0x0a, 0x04, 0x52,
+	0x6f, 0x6f, 0x74, 0x10, 0x02, 0x42, 0x07, 0x5a, 0x05, 0x2e, 0x3b, 0x61, 0x70, 0x69, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -279,19 +340,23 @@ func file_app_proto_rawDescGZIP() []byte {
 }
 
 var file_app_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_app_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_app_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_app_proto_goTypes = []interface{}{
 	(BlockType)(0),     // 0: BlockType
 	(*FloatPoint)(nil), // 1: FloatPoint
 	(*WorldPoint)(nil), // 2: WorldPoint
-	(*Tick)(nil),       // 3: Tick
+	(*World)(nil),      // 3: World
+	(*Block)(nil),      // 4: Block
 }
 var file_app_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	4, // 0: World.blocks:type_name -> Block
+	2, // 1: Block.point:type_name -> WorldPoint
+	0, // 2: Block.blockType:type_name -> BlockType
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_app_proto_init() }
@@ -325,7 +390,19 @@ func file_app_proto_init() {
 			}
 		}
 		file_app_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Tick); i {
+			switch v := v.(*World); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_app_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Block); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -343,7 +420,7 @@ func file_app_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_app_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -38,9 +38,7 @@ func (c *Client) reader(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			{
-				return
-			}
+			return
 		default:
 			_, data, err := c.conn.Read(ctx)
 			if err != nil {
@@ -63,10 +61,7 @@ func (c *Client) writer(ctx context.Context) {
 		select {
 		case msg := <-c.send:
 			{
-				//c.logger.Info("sending")
 				err := c.conn.Write(ctx, websocket.MessageText, msg)
-				//c.logger.Info("send")
-
 				if err != nil {
 					c.logger.Error(err)
 					continue

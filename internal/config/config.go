@@ -15,6 +15,10 @@ type AppConfig struct {
 		Username string
 		Password string
 	}
+	Game struct {
+		NetRate        int
+		SimulationRate int
+	}
 }
 
 func NewAppConfig(file string) (*AppConfig, error) {

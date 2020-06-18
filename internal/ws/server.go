@@ -3,6 +3,7 @@ package ws
 import (
 	"context"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
 	"nhooyr.io/websocket"
 	pb "qubes/internal/api"
 	"qubes/internal/model"
@@ -17,8 +18,9 @@ type GameHandler interface {
 }
 
 type Server struct {
-	clients  map[model.ClientID]*Client
-	mu       sync.Mutex
+	clients map[model.ClientID]*Client
+	mu      sync.Mutex
+
 	logger   *zap.SugaredLogger
 	game     GameHandler
 	protocol protocol.Protocol
@@ -71,8 +73,6 @@ func (s *Server) HandleMessage(client *Client, msg []byte) error {
 		return err
 	}
 	s.game.HandleRequest(client.id, req)
-
-	s.logger.Infof("got message %T", req.Command)
 	return nil
 }
 
@@ -85,6 +85,13 @@ func (s *Server) RemoveClient(client *Client) {
 	s.mu.Unlock()
 }
 
-func (s *Server) Send(id model.ClientID, msg []byte) {
-	s.clients[id].Send(msg)
+func (s *Server) Send(id model.ClientID, msg proto.Message) {
+	bytes, err := s.protocol.Marshal(msg)
+
+	if err != nil {
+		s.logger.Error(err)
+		return
+	}
+
+	s.clients[id].Send(bytes)
 }

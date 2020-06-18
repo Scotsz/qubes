@@ -6,3 +6,7 @@ port = "8000"
 url = "localhost:6379"
 username = ""
 password = ""
+
+[Game]
+SimulationRate = "20"
+NetRate = "40"

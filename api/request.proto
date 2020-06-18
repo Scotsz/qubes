@@ -7,7 +7,7 @@ message Request {
     oneof command {
         Move move = 2;
         Shoot shoot = 3;
-        UpdateRangeRequest changes = 4;
+        WorldDiff worldDiff = 4;
         ConnectRequest connect = 5;
     }
 }
@@ -16,9 +16,7 @@ message ConnectRequest {
     string username = 1;
 }
 
-message UpdateRangeRequest {
-    uint64 startTick = 1;
-    uint64 endTick = 2;
+message WorldDiff {
 }
 
 message Shoot {

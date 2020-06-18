@@ -28,3 +28,4 @@ message Change {
     repeated WorldPoint point = 1;
     BlockType blockType = 2;
 }
+

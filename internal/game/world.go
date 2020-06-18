@@ -99,7 +99,7 @@ func (w *World) isSolid(p Point) bool {
 	return true
 }
 
-func (w *World) destroyBlock(ctx context.Context, p Point) []Point {
+func (w *World) DestroyBlock(ctx context.Context, p Point) []Point {
 	var c int
 
 	if !(w.isValid(p) && w.isSolid(p)) {
@@ -168,9 +168,33 @@ func (w *World) getConnected(ctx context.Context, point Point, deleting map[Poin
 	return len(marked)
 }
 
-func GetTestWorld() *World {
+func GetTestWorld(n int) *World {
 	w := NewWorld(8, 8, 8)
-	points := []Point{
+	var points []Point
+	switch n {
+	case 0:
+		points = w0()
+	case 1:
+		points = w1()
+	}
+	w.FillPoints(points, pb.BlockType_Root)
+	return w
+}
+
+func w1() []Point {
+	return []Point{
+		{1, 1, 0}, {3, 1, 0}, {5, 1, 0}, {7, 1, 0},
+		{1, 1, 1}, {3, 1, 1}, {5, 1, 1}, {7, 1, 1},
+		{1, 1, 2}, {3, 1, 2}, {5, 1, 2}, {7, 1, 2},
+		{1, 1, 3}, {3, 1, 3}, {5, 1, 3}, {7, 1, 3},
+		{1, 1, 4}, {3, 1, 4}, {5, 1, 4}, {7, 1, 4},
+		{1, 1, 5}, {3, 1, 5}, {5, 1, 5}, {7, 1, 5},
+		{1, 1, 6}, {3, 1, 6}, {5, 1, 6}, {7, 1, 6},
+		{1, 1, 7}, {3, 1, 7}, {5, 1, 7}, {7, 1, 7},
+	}
+}
+func w0() []Point {
+	return []Point{
 		{1, 1, 0},
 		{2, 1, 0},
 		{1, 2, 0},
@@ -199,6 +223,4 @@ func GetTestWorld() *World {
 		{5, 2, 7},
 		{6, 2, 7},
 	}
-	w.FillPoints(points, pb.BlockType_Root)
-	return w
 }
