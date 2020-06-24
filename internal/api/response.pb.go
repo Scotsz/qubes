@@ -174,7 +174,7 @@ func (x *PlayerDisconnected) GetId() string {
 	return ""
 }
 
-type AllPlayers struct {
+type EntityUpdates struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -183,8 +183,8 @@ type AllPlayers struct {
 	Players []*Player `protobuf:"bytes,2,rep,name=players,proto3" json:"players,omitempty"`
 }
 
-func (x *AllPlayers) Reset() {
-	*x = AllPlayers{}
+func (x *EntityUpdates) Reset() {
+	*x = EntityUpdates{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_response_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -192,13 +192,13 @@ func (x *AllPlayers) Reset() {
 	}
 }
 
-func (x *AllPlayers) String() string {
+func (x *EntityUpdates) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AllPlayers) ProtoMessage() {}
+func (*EntityUpdates) ProtoMessage() {}
 
-func (x *AllPlayers) ProtoReflect() protoreflect.Message {
+func (x *EntityUpdates) ProtoReflect() protoreflect.Message {
 	mi := &file_response_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -210,35 +210,35 @@ func (x *AllPlayers) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AllPlayers.ProtoReflect.Descriptor instead.
-func (*AllPlayers) Descriptor() ([]byte, []int) {
+// Deprecated: Use EntityUpdates.ProtoReflect.Descriptor instead.
+func (*EntityUpdates) Descriptor() ([]byte, []int) {
 	return file_response_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *AllPlayers) GetTick() uint64 {
+func (x *EntityUpdates) GetTick() uint64 {
 	if x != nil {
 		return x.Tick
 	}
 	return 0
 }
 
-func (x *AllPlayers) GetPlayers() []*Player {
+func (x *EntityUpdates) GetPlayers() []*Player {
 	if x != nil {
 		return x.Players
 	}
 	return nil
 }
 
-type Changes struct {
+type BlockUpdates struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Changes []*Change `protobuf:"bytes,1,rep,name=changes,proto3" json:"changes,omitempty"`
+	Blocks []*Blocks `protobuf:"bytes,1,rep,name=blocks,proto3" json:"blocks,omitempty"`
 }
 
-func (x *Changes) Reset() {
-	*x = Changes{}
+func (x *BlockUpdates) Reset() {
+	*x = BlockUpdates{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_response_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -246,13 +246,13 @@ func (x *Changes) Reset() {
 	}
 }
 
-func (x *Changes) String() string {
+func (x *BlockUpdates) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Changes) ProtoMessage() {}
+func (*BlockUpdates) ProtoMessage() {}
 
-func (x *Changes) ProtoReflect() protoreflect.Message {
+func (x *BlockUpdates) ProtoReflect() protoreflect.Message {
 	mi := &file_response_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -264,19 +264,19 @@ func (x *Changes) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Changes.ProtoReflect.Descriptor instead.
-func (*Changes) Descriptor() ([]byte, []int) {
+// Deprecated: Use BlockUpdates.ProtoReflect.Descriptor instead.
+func (*BlockUpdates) Descriptor() ([]byte, []int) {
 	return file_response_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *Changes) GetChanges() []*Change {
+func (x *BlockUpdates) GetBlocks() []*Blocks {
 	if x != nil {
-		return x.Changes
+		return x.Blocks
 	}
 	return nil
 }
 
-type Change struct {
+type Blocks struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -285,8 +285,8 @@ type Change struct {
 	BlockType BlockType     `protobuf:"varint,2,opt,name=blockType,proto3,enum=BlockType" json:"blockType,omitempty"`
 }
 
-func (x *Change) Reset() {
-	*x = Change{}
+func (x *Blocks) Reset() {
+	*x = Blocks{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_response_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -294,13 +294,13 @@ func (x *Change) Reset() {
 	}
 }
 
-func (x *Change) String() string {
+func (x *Blocks) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Change) ProtoMessage() {}
+func (*Blocks) ProtoMessage() {}
 
-func (x *Change) ProtoReflect() protoreflect.Message {
+func (x *Blocks) ProtoReflect() protoreflect.Message {
 	mi := &file_response_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -312,23 +312,78 @@ func (x *Change) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Change.ProtoReflect.Descriptor instead.
-func (*Change) Descriptor() ([]byte, []int) {
+// Deprecated: Use Blocks.ProtoReflect.Descriptor instead.
+func (*Blocks) Descriptor() ([]byte, []int) {
 	return file_response_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *Change) GetPoint() []*WorldPoint {
+func (x *Blocks) GetPoint() []*WorldPoint {
 	if x != nil {
 		return x.Point
 	}
 	return nil
 }
 
-func (x *Change) GetBlockType() BlockType {
+func (x *Blocks) GetBlockType() BlockType {
 	if x != nil {
 		return x.BlockType
 	}
 	return BlockType_Debug
+}
+
+type NetUpdate struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Blocks   *BlockUpdates  `protobuf:"bytes,1,opt,name=blocks,proto3" json:"blocks,omitempty"`
+	Entities *EntityUpdates `protobuf:"bytes,2,opt,name=entities,proto3" json:"entities,omitempty"`
+}
+
+func (x *NetUpdate) Reset() {
+	*x = NetUpdate{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_response_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *NetUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetUpdate) ProtoMessage() {}
+
+func (x *NetUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_response_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetUpdate.ProtoReflect.Descriptor instead.
+func (*NetUpdate) Descriptor() ([]byte, []int) {
+	return file_response_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *NetUpdate) GetBlocks() *BlockUpdates {
+	if x != nil {
+		return x.Blocks
+	}
+	return nil
+}
+
+func (x *NetUpdate) GetEntities() *EntityUpdates {
+	if x != nil {
+		return x.Entities
+	}
+	return nil
 }
 
 var File_response_proto protoreflect.FileDescriptor
@@ -344,21 +399,27 @@ var file_response_proto_rawDesc = []byte{
 	0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72,
 	0x52, 0x06, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x22, 0x24, 0x0a, 0x12, 0x50, 0x6c, 0x61, 0x79,
 	0x65, 0x72, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x12, 0x0e,
-	0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x43,
-	0x0a, 0x0a, 0x41, 0x6c, 0x6c, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x73, 0x12, 0x12, 0x0a, 0x04,
-	0x74, 0x69, 0x63, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x04, 0x74, 0x69, 0x63, 0x6b,
-	0x12, 0x21, 0x0a, 0x07, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28,
-	0x0b, 0x32, 0x07, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x52, 0x07, 0x70, 0x6c, 0x61, 0x79,
-	0x65, 0x72, 0x73, 0x22, 0x2c, 0x0a, 0x07, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x73, 0x12, 0x21,
-	0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
-	0x07, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65,
-	0x73, 0x22, 0x55, 0x0a, 0x06, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x12, 0x21, 0x0a, 0x05, 0x70,
-	0x6f, 0x69, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x57, 0x6f, 0x72,
-	0x6c, 0x64, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x52, 0x05, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x12, 0x28,
-	0x0a, 0x09, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x0e, 0x32, 0x0a, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x52, 0x09, 0x62,
-	0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x42, 0x07, 0x5a, 0x05, 0x2e, 0x3b, 0x61, 0x70,
-	0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x46,
+	0x0a, 0x0d, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x12,
+	0x12, 0x0a, 0x04, 0x74, 0x69, 0x63, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x04, 0x74,
+	0x69, 0x63, 0x6b, 0x12, 0x21, 0x0a, 0x07, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x73, 0x18, 0x02,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x52, 0x07, 0x70,
+	0x6c, 0x61, 0x79, 0x65, 0x72, 0x73, 0x22, 0x2f, 0x0a, 0x0c, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x55,
+	0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x12, 0x1f, 0x0a, 0x06, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x52,
+	0x06, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x22, 0x55, 0x0a, 0x06, 0x42, 0x6c, 0x6f, 0x63, 0x6b,
+	0x73, 0x12, 0x21, 0x0a, 0x05, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x0b, 0x2e, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x52, 0x05, 0x70,
+	0x6f, 0x69, 0x6e, 0x74, 0x12, 0x28, 0x0a, 0x09, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0a, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x54,
+	0x79, 0x70, 0x65, 0x52, 0x09, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x22, 0x5e,
+	0x0a, 0x09, 0x4e, 0x65, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x25, 0x0a, 0x06, 0x62,
+	0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x42, 0x6c,
+	0x6f, 0x63, 0x6b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x52, 0x06, 0x62, 0x6c, 0x6f, 0x63,
+	0x6b, 0x73, 0x12, 0x2a, 0x0a, 0x08, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x69, 0x65, 0x73, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x55, 0x70, 0x64,
+	0x61, 0x74, 0x65, 0x73, 0x52, 0x08, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x69, 0x65, 0x73, 0x42, 0x07,
+	0x5a, 0x05, 0x2e, 0x3b, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -373,30 +434,33 @@ func file_response_proto_rawDescGZIP() []byte {
 	return file_response_proto_rawDescData
 }
 
-var file_response_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_response_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_response_proto_goTypes = []interface{}{
 	(*Player)(nil),             // 0: Player
 	(*PlayerConnected)(nil),    // 1: PlayerConnected
 	(*PlayerDisconnected)(nil), // 2: PlayerDisconnected
-	(*AllPlayers)(nil),         // 3: AllPlayers
-	(*Changes)(nil),            // 4: Changes
-	(*Change)(nil),             // 5: Change
-	(*FloatPoint)(nil),         // 6: FloatPoint
-	(*WorldPoint)(nil),         // 7: WorldPoint
-	(BlockType)(0),             // 8: BlockType
+	(*EntityUpdates)(nil),      // 3: EntityUpdates
+	(*BlockUpdates)(nil),       // 4: BlockUpdates
+	(*Blocks)(nil),             // 5: Blocks
+	(*NetUpdate)(nil),          // 6: NetUpdate
+	(*FloatPoint)(nil),         // 7: FloatPoint
+	(*WorldPoint)(nil),         // 8: WorldPoint
+	(BlockType)(0),             // 9: BlockType
 }
 var file_response_proto_depIdxs = []int32{
-	6, // 0: Player.pos:type_name -> FloatPoint
+	7, // 0: Player.pos:type_name -> FloatPoint
 	0, // 1: PlayerConnected.player:type_name -> Player
-	0, // 2: AllPlayers.players:type_name -> Player
-	5, // 3: Changes.changes:type_name -> Change
-	7, // 4: Change.point:type_name -> WorldPoint
-	8, // 5: Change.blockType:type_name -> BlockType
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	0, // 2: EntityUpdates.players:type_name -> Player
+	5, // 3: BlockUpdates.blocks:type_name -> Blocks
+	8, // 4: Blocks.point:type_name -> WorldPoint
+	9, // 5: Blocks.blockType:type_name -> BlockType
+	4, // 6: NetUpdate.blocks:type_name -> BlockUpdates
+	3, // 7: NetUpdate.entities:type_name -> EntityUpdates
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_response_proto_init() }
@@ -443,7 +507,7 @@ func file_response_proto_init() {
 			}
 		}
 		file_response_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AllPlayers); i {
+			switch v := v.(*EntityUpdates); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -455,7 +519,7 @@ func file_response_proto_init() {
 			}
 		}
 		file_response_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Changes); i {
+			switch v := v.(*BlockUpdates); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -467,7 +531,19 @@ func file_response_proto_init() {
 			}
 		}
 		file_response_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Change); i {
+			switch v := v.(*Blocks); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_response_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*NetUpdate); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -485,7 +561,7 @@ func file_response_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_response_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

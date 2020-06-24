@@ -6,14 +6,17 @@ import (
 )
 
 type Player struct {
+	name string
+
 	X, Y, Z      float32
 	xDest, yDest int32
 	dx, dy       float32
 	speed        float32
 }
 
-func NewPlayer() *Player {
+func NewPlayer(name string) *Player {
 	return &Player{
+		name:  "player_" + name,
 		speed: 2,
 		X:     1,
 		Y:     1,
@@ -49,7 +52,17 @@ func (p *Player) move() {
 func (p *Player) Tick() {
 	p.move()
 }
-
+func (p *Player) ShouldUpdate() bool {
+	return true
+}
+func (p *Player) GetUpdate() *PlayerUpdate {
+	return &PlayerUpdate{
+		X:    p.X,
+		Y:    p.Y,
+		Z:    p.Z,
+		name: p.name,
+	}
+}
 func length(x, y, z float32) float32 {
 	return float32(math.Sqrt(float64(x*x + y*y + z*z)))
 }

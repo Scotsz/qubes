@@ -3,99 +3,103 @@ package game
 import (
 	"context"
 	"go.uber.org/zap"
+	"math/rand"
 	pb "qubes/internal/api"
 	"qubes/internal/model"
+	"strconv"
+	"time"
 )
+
+type Command interface {
+	execute(ctx context.Context)
+}
+type PlayerStorage map[model.ClientID]*Player
 
 type state struct {
 	logger *zap.SugaredLogger
 
-	tickers map[model.ClientID]Ticker
+	players PlayerStorage
 
 	worldDiff map[Point]pb.BlockType
 	world     *World
 
-	destroy chan Point
-	place   chan *WorldUpdate
+	commandQueue chan Command
 
-	worldUpdates chan *WorldUpdate
-	network      *NetworkManager
-}
-
-type Ticker interface {
-	Tick()
-}
-
-type WorldManager interface {
-	Run(ctx context.Context, tick <-chan model.TickID)
-	PlaceBlocks(update *WorldUpdate)
-	RemoveBlock(p Point)
-	AddTicker(id model.ClientID, ticker Ticker)
-	RemoveTicker(id model.ClientID)
+	network *NetworkManager
+	tick    model.TickID
 }
 
 func NewWorldManager(logger *zap.SugaredLogger, world *World, manager *NetworkManager) *state {
 	return &state{
-		destroy: make(chan Point, 10),
-		logger:  logger,
-		tickers: make(map[model.ClientID]Ticker),
-		world:   world,
-		network: manager,
+		commandQueue: make(chan Command),
+		logger:       logger,
+		players:      make(map[model.ClientID]*Player),
+		world:        world,
+		network:      manager,
 	}
 }
 
-func (s *state) AddTicker(id model.ClientID, ticker Ticker) {
-	//s.players.Add(id, NewPlayer())
-	s.tickers[id] = ticker
-}
-func (s *state) RemoveTicker(id model.ClientID) {
-	//s.players.Remove(id)
-	delete(s.tickers, id)
-}
-
 func (s *state) processTickers() {
-	for _, p := range s.tickers {
+	for _, p := range s.players {
 		p.Tick()
 	}
 }
 
-func (s *state) Run(ctx context.Context, tick <-chan model.TickID) { //<-chan worldupdates
+func (s *state) Run(ctx context.Context) { //<-chan worldupdates
 	s.logger.Info("WorldManager running")
+	simTicker := time.NewTicker(time.Millisecond * 50)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case point := <-s.destroy:
-			//		deleting := s.world.DestroyBlock(ctx, point)
-			//update := &WorldUpdate{
-			//	points:  deleting,
-			//	newType: pb.BlockType_Air,
-			//}
-			s.network.AddWorldUpdate(&WorldUpdate{
-				points:  []Point{point},
-				newType: pb.BlockType_Air,
-				tick:    1,
-			})
 
-		case update := <-s.place:
-			//w.world.placeblocks
-			s.network.AddWorldUpdate(update)
+		case cmd := <-s.commandQueue:
+			cmd.execute(ctx)
 
-		case <-tick:
+		case <-simTicker.C:
 			s.processTickers()
-		}
+			for _, p := range s.players {
+				if p.ShouldUpdate() {
+					upd := p.GetUpdate()
+					upd.tick = s.tick
+					s.network.AddPlayerUpdate(upd)
+				}
+			}
 
+			s.tick++
+		}
 	}
-}
-func (s *state) PlaceBlocks(update *WorldUpdate) {
-	s.place <- update
+
 }
 func (s *state) RemoveBlock(p Point) {
-	s.destroy <- p
+	s.commandQueue <- DestroyBlockCommand{
+		world:   s.world,
+		network: s.network,
+		point:   p,
+		tick:    s.tick,
+	}
+}
+
+func (s *state) AddCommand(command Command) {
+	s.commandQueue <- command
+}
+
+func (s *state) AddPlayer(id model.ClientID) {
+	s.AddCommand(AddPlayerCommand{players: s.players, id: id, name: strconv.Itoa(rand.Int())})
+}
+
+func (s *state) RemovePlayer(id model.ClientID) {
+	s.AddCommand(RemovePlayerCommand{players: s.players, id: id})
 }
 
 type WorldUpdate struct {
 	points  []Point
 	newType pb.BlockType
+	tick    model.TickID
+}
+type PlayerUpdate struct {
+	X, Y, Z float32
+	name    string
 	tick    model.TickID
 }

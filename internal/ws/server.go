@@ -18,17 +18,16 @@ type GameHandler interface {
 }
 
 type Server struct {
-	clients map[model.ClientID]*Client
-	mu      sync.Mutex
-
+	mu       sync.Mutex
+	clients  *ClientStore
 	logger   *zap.SugaredLogger
 	game     GameHandler
 	protocol protocol.Protocol
 }
 
-func NewServer(logger *zap.SugaredLogger, protocol protocol.Protocol) *Server {
+func NewServer(logger *zap.SugaredLogger, protocol protocol.Protocol, clients *ClientStore) *Server {
 	return &Server{
-		clients:  make(map[model.ClientID]*Client),
+		clients:  clients,
 		mu:       sync.Mutex{},
 		logger:   logger,
 		protocol: protocol,
@@ -39,21 +38,21 @@ func (s *Server) SetGame(g GameHandler) {
 	s.game = g
 }
 
-func (s *Server) AddClient(client *Client) {
-	s.logger.Infof("new client %v", client.id)
-
-	s.mu.Lock()
-	s.clients[client.id] = client
-	s.mu.Unlock()
-
-	s.game.Connect(client.id)
-
+func (s *Server) RemoveClient(client *Client) {
+	s.logger.Infof("removing client %v", client.id)
+	s.game.Disconnect(client.id)
+	s.clients.Remove(client)
 }
+
 func (s *Server) HandleConn(c *websocket.Conn) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	client := NewClient(c, s, s.logger)
-	s.AddClient(client)
+
+	s.logger.Infof("new client %v", client.id)
+	s.clients.Add(client)
+	s.game.Connect(client.id)
+
 	client.Run(ctx)
 
 	defer func() {
@@ -63,7 +62,6 @@ func (s *Server) HandleConn(c *websocket.Conn) {
 	}()
 
 }
-
 func (s *Server) HandleMessage(client *Client, msg []byte) error {
 	req := &pb.Request{}
 	err := s.protocol.Unmarshal(msg, req)
@@ -76,22 +74,40 @@ func (s *Server) HandleMessage(client *Client, msg []byte) error {
 	return nil
 }
 
-func (s *Server) RemoveClient(client *Client) {
-	s.logger.Infof("removing client %v", client.id)
-	s.game.Disconnect(client.id)
-
-	s.mu.Lock()
-	delete(s.clients, client.id)
-	s.mu.Unlock()
+type sender struct {
+	clients  *ClientStore
+	protocol protocol.Protocol
+	logger   *zap.SugaredLogger
 }
 
-func (s *Server) Send(id model.ClientID, msg proto.Message) {
+func NewSender(logger *zap.SugaredLogger, proto protocol.Protocol, store *ClientStore) *sender {
+	return &sender{
+		clients:  store,
+		protocol: proto,
+		logger:   logger,
+	}
+}
+
+func (s sender) Send(id model.ClientID, msg proto.Message) {
 	bytes, err := s.protocol.Marshal(msg)
 
 	if err != nil {
 		s.logger.Error(err)
 		return
 	}
+	s.clients.Get(id).Send(bytes)
+}
 
-	s.clients[id].Send(bytes)
+func (s sender) Broadcast(msg proto.Message) {
+	for i := range s.clients.clients {
+		s.Send(i, msg)
+	}
+}
+
+func (s sender) BroadcastExcept(id model.ClientID, msg proto.Message) {
+	for i := range s.clients.clients {
+		if i != id {
+			s.Send(i, msg)
+		}
+	}
 }

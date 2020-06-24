@@ -18,18 +18,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	logger.Info(cfg.Game.SimulationRate)
 	ctx := context.Background()
 
 	proto := protocol.NewJson()
+	clientStore := ws.NewClientStore()
 
-	wsServer := ws.NewServer(logger, proto)
+	sender := ws.NewSender(logger, proto, clientStore)
+	g := game.New(cfg, logger, sender)
 
-	g := game.New(cfg, logger, wsServer)
-
+	wsServer := ws.NewServer(logger, proto, clientStore)
 	wsServer.SetGame(g)
 
 	httpServer := http.New(ctx, logger, cfg, wsServer)
-	go g.Run(ctx)
+	g.Run(ctx)
 	log.Fatal(httpServer.Start())
 }

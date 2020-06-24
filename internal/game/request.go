@@ -12,7 +12,7 @@ type RequestHandler struct {
 	logger       *zap.SugaredLogger
 	commandQueue chan *PlayerCommand
 
-	worldManager WorldManager
+	worldManager *state
 	network      *NetworkManager
 }
 
@@ -26,7 +26,7 @@ func (r *RequestHandler) AddRequest(id model.ClientID, req *pb.Request) {
 }
 func NewRequestHandler(
 	logger *zap.SugaredLogger,
-	worldManager WorldManager,
+	worldManager *state,
 	network *NetworkManager,
 
 ) *RequestHandler {
@@ -52,8 +52,6 @@ func (r *RequestHandler) Run(ctx context.Context) {
 }
 
 func (r *RequestHandler) handleCommand(ctx context.Context, cmd *PlayerCommand) {
-	cmd.Request.ProtoMessage()
-
 	var payload string
 	switch cmd.Command.(type) {
 

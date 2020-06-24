@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 	"nhooyr.io/websocket"
 	"qubes/internal/model"
+	"sync"
 	"time"
 )
 
@@ -60,26 +61,43 @@ func (c *Client) writer(ctx context.Context) {
 	for {
 		select {
 		case msg := <-c.send:
-			{
-				err := c.conn.Write(ctx, websocket.MessageText, msg)
-				if err != nil {
-					c.logger.Error(err)
-					continue
-				}
+			err := c.conn.Write(ctx, websocket.MessageText, msg)
+			if err != nil {
+				continue
 			}
 		case <-ctx.Done():
-			{
-				return
-			}
+			return
 		case <-pingTicker.C:
-			{
-				err := c.conn.Ping(ctx)
-				if err != nil {
-					c.logger.Info(err.Error())
-					return
-				}
+			err := c.conn.Ping(ctx)
+			if err != nil {
+				return
 			}
 
 		}
 	}
+}
+
+type ClientStore struct {
+	mu      sync.Mutex
+	clients map[model.ClientID]*Client
+}
+
+func NewClientStore() *ClientStore {
+	return &ClientStore{
+		mu:      sync.Mutex{},
+		clients: make(map[model.ClientID]*Client),
+	}
+}
+func (c *ClientStore) Add(client *Client) {
+	c.mu.Lock()
+	c.clients[client.id] = client
+	c.mu.Unlock()
+}
+func (c *ClientStore) Remove(client *Client) {
+	c.mu.Lock()
+	delete(c.clients, client.id)
+	c.mu.Unlock()
+}
+func (c *ClientStore) Get(id model.ClientID) *Client {
+	return c.clients[id]
 }
