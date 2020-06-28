@@ -3,19 +3,20 @@ package game
 import (
 	"github.com/stretchr/testify/assert"
 	pb "qubes/internal/api"
+	"qubes/internal/model"
 	"testing"
 )
 
 func TestWorld_SetBlock(t *testing.T) {
-	world := NewWorld(256, 256, 64) //4194304
+	world := model.NewWorld(256, 256, 64) //4194304
 
-	valid := []Point{
+	valid := []model.Point{
 		{X: 34, Y: 255, Z: 63},
 		{X: 255, Y: 255, Z: 63},
 		{X: 0, Y: 0, Z: 0},
 	}
 
-	invalid := []Point{
+	invalid := []model.Point{
 		{X: -1, Y: 0, Z: 0},
 		{X: 0, Y: -1, Z: 0},
 		{X: 0, Y: 0, Z: -1},
@@ -39,10 +40,10 @@ func TestWorld_SetBlock(t *testing.T) {
 	}
 
 }
-func world1(t *testing.T) *World {
+func world1(t *testing.T) *model.World {
 	t.Helper()
-	w := NewWorld(8, 8, 8)
-	points := []Point{
+	w := model.NewWorld(8, 8, 8)
+	points := []model.Point{
 		{1, 1, 0},
 		{2, 1, 0},
 		{1, 2, 0},
@@ -74,10 +75,10 @@ func world1(t *testing.T) *World {
 	w.FillPoints(points, pb.BlockType_Root)
 	return w
 }
-func world2(t *testing.T) *World {
+func world2(t *testing.T) *model.World {
 	t.Helper()
-	w := NewWorld(5, 5, 5)
-	points := []Point{
+	w := model.NewWorld(5, 5, 5)
+	points := []model.Point{
 		{1, 1, 0},
 		{1, 1, 1},
 		{1, 1, 2},
@@ -87,10 +88,10 @@ func world2(t *testing.T) *World {
 	w.FillPoints(points, pb.BlockType_Root)
 	return w
 }
-func world3(t *testing.T) *World {
+func world3(t *testing.T) *model.World {
 	t.Helper()
-	w := NewWorld(5, 5, 5)
-	points := []Point{
+	w := model.NewWorld(5, 5, 5)
+	points := []model.Point{
 		{0, 1, 1},
 		{0, 1, 2},
 		{0, 1, 3},
@@ -101,28 +102,28 @@ func world3(t *testing.T) *World {
 	return w
 }
 
-func world4(t *testing.T) *World {
+func world4(t *testing.T) *model.World {
 	t.Helper()
-	w := NewWorld(512, 512, 64)
-	w.Fill(Point{0, 0, 0}, Point{511, 511, 63}, pb.BlockType_Root)
+	w := model.NewWorld(512, 512, 64)
+	w.Fill(model.Point{0, 0, 0}, model.Point{511, 511, 63}, pb.BlockType_Root)
 
-	w.Fill(Point{0, 0, 32}, Point{511, 511, 32}, pb.BlockType_Air)
+	w.Fill(model.Point{0, 0, 32}, model.Point{511, 511, 32}, pb.BlockType_Air)
 
-	w.SetBlock(Point{0, 0, 32}, pb.BlockType_Root)
+	w.SetBlock(model.Point{0, 0, 32}, pb.BlockType_Root)
 	return w
 }
 
 func TestWorld_DestroyBlock2(t *testing.T) {
 	w4 := world4(t)
 
-	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(Point{0, 0, 30}))
-	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(Point{0, 0, 31}))
-	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(Point{0, 0, 33}))
+	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(model.Point{0, 0, 30}))
+	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(model.Point{0, 0, 31}))
+	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(model.Point{0, 0, 33}))
 
-	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(Point{0, 0, 32}))
-	assert.Equal(t, pb.BlockType_Air, w4.GetBlock(Point{1, 0, 32}))
-	assert.Equal(t, pb.BlockType_Air, w4.GetBlock(Point{1, 0, 32}))
-	assert.Equal(t, pb.BlockType_Air, w4.GetBlock(Point{1, 1, 32}))
+	assert.Equal(t, pb.BlockType_Root, w4.GetBlock(model.Point{0, 0, 32}))
+	assert.Equal(t, pb.BlockType_Air, w4.GetBlock(model.Point{1, 0, 32}))
+	assert.Equal(t, pb.BlockType_Air, w4.GetBlock(model.Point{1, 0, 32}))
+	assert.Equal(t, pb.BlockType_Air, w4.GetBlock(model.Point{1, 1, 32}))
 
 	//
 	//blocks := w4.DestroyBlock(Point{0, 0, 31})

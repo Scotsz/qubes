@@ -15,18 +15,6 @@ type Sender interface {
 	BroadcastExcept(id model.ClientID, msg proto.Message)
 }
 
-type NetUpdate struct {
-	blocks  []*WorldUpdate
-	players []*PlayerUpdate
-}
-
-func NewNetUpdate() *NetUpdate {
-	return &NetUpdate{
-		blocks:  make([]*WorldUpdate, 0),
-		players: make([]*PlayerUpdate, 0),
-	}
-}
-
 type NetworkManager struct {
 	worldUpdates  chan *WorldUpdate
 	playerUpdates chan *PlayerUpdate
@@ -51,7 +39,7 @@ func NewNetworkManager(sender Sender, logger *zap.SugaredLogger) *NetworkManager
 }
 
 func (n *NetworkManager) Run(ctx context.Context) {
-	n.logger.Info("Network running")
+	n.logger.Debug("Network running")
 	ticker := time.Tick(time.Millisecond * 100)
 	for {
 		select {
@@ -69,19 +57,18 @@ func (n *NetworkManager) Run(ctx context.Context) {
 			if _, ok := n.queue[update.tick]; !ok {
 				n.queue[update.tick] = NewNetUpdate()
 			}
-			n.logger.Infof("ADDING PUPD TICK:%v", update.tick)
 			n.queue[update.tick].players = append(n.queue[update.tick].players, update)
 
 		case <-ticker:
-			for _, upd := range n.queue {
-				n.logger.Info("BROACASTING UPDATES")
-				changes := n.response.NetUpdate(upd)
+			for tick, upd := range n.queue {
+				changes := n.response.NetUpdate(upd, tick)
 				n.sender.Broadcast(changes)
 			}
 			n.queue = make(map[model.TickID]*NetUpdate)
 		}
 	}
 }
+
 func (n *NetworkManager) AddPlayerUpdate(update *PlayerUpdate) {
 	//n.sender.Broadcast(n.response.AllPlayers(players, tick))
 	n.playerUpdates <- update
@@ -95,7 +82,7 @@ func (n *NetworkManager) AddWorldUpdate(update *WorldUpdate) {
 	if update != nil {
 		n.worldUpdates <- update
 	} else {
-		n.logger.Info("updates are nil wtf")
+		n.logger.Debug("updates are nil wtf")
 	}
 }
 

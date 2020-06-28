@@ -16,13 +16,11 @@ message PlayerDisconnected {
 }
 
 message EntityUpdates {
-    uint64 tick = 1;
     repeated Player players = 2;
 }
 
 message BlockUpdates {
     repeated Blocks blocks = 1;
-    uint64 tick = 2;
 }
 
 message Blocks {
@@ -33,4 +31,5 @@ message Blocks {
 message NetUpdate {
     BlockUpdates blocks = 1;
     EntityUpdates entities = 2;
+    uint64 tick = 3;
 }

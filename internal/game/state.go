@@ -13,15 +13,15 @@ import (
 type Command interface {
 	execute(ctx context.Context)
 }
-type PlayerStorage map[model.ClientID]*Player
+type PlayerStorage map[model.ClientID]*model.Player
 
 type state struct {
 	logger *zap.SugaredLogger
 
 	players PlayerStorage
 
-	worldDiff map[Point]pb.BlockType
-	world     *World
+	worldDiff map[model.Point]pb.BlockType
+	world     *model.World
 
 	commandQueue chan Command
 
@@ -29,11 +29,11 @@ type state struct {
 	tick    model.TickID
 }
 
-func NewWorldManager(logger *zap.SugaredLogger, world *World, manager *NetworkManager) *state {
+func NewWorldManager(logger *zap.SugaredLogger, world *model.World, manager *NetworkManager) *state {
 	return &state{
 		commandQueue: make(chan Command),
 		logger:       logger,
-		players:      make(map[model.ClientID]*Player),
+		players:      make(map[model.ClientID]*model.Player),
 		world:        world,
 		network:      manager,
 	}
@@ -45,8 +45,8 @@ func (s *state) processTickers() {
 	}
 }
 
-func (s *state) Run(ctx context.Context) { //<-chan worldupdates
-	s.logger.Info("WorldManager running")
+func (s *state) Run(ctx context.Context) {
+	s.logger.Debug("WorldManager running")
 	simTicker := time.NewTicker(time.Millisecond * 50)
 
 	for {
@@ -61,9 +61,7 @@ func (s *state) Run(ctx context.Context) { //<-chan worldupdates
 			s.processTickers()
 			for _, p := range s.players {
 				if p.ShouldUpdate() {
-					upd := p.GetUpdate()
-					upd.tick = s.tick
-					s.network.AddPlayerUpdate(upd)
+					s.network.AddPlayerUpdate(NewPlayerUpdate(p, s.tick))
 				}
 			}
 
@@ -72,7 +70,7 @@ func (s *state) Run(ctx context.Context) { //<-chan worldupdates
 	}
 
 }
-func (s *state) RemoveBlock(p Point) {
+func (s *state) RemoveBlock(p model.Point) {
 	s.commandQueue <- DestroyBlockCommand{
 		world:   s.world,
 		network: s.network,
@@ -91,15 +89,4 @@ func (s *state) AddPlayer(id model.ClientID) {
 
 func (s *state) RemovePlayer(id model.ClientID) {
 	s.AddCommand(RemovePlayerCommand{players: s.players, id: id})
-}
-
-type WorldUpdate struct {
-	points  []Point
-	newType pb.BlockType
-	tick    model.TickID
-}
-type PlayerUpdate struct {
-	X, Y, Z float32
-	name    string
-	tick    model.TickID
 }

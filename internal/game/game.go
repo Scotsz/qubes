@@ -17,7 +17,7 @@ type Game struct {
 
 func New(cfg *config.AppConfig, logger *zap.SugaredLogger, sender Sender) *Game {
 	network := NewNetworkManager(sender, logger)
-	worldManager := NewWorldManager(logger, GetTestWorld(0), network)
+	worldManager := NewWorldManager(logger, model.GetTestWorld(0), network)
 	requestHandler := NewRequestHandler(logger, worldManager, network)
 
 	return &Game{

@@ -39,7 +39,7 @@ func NewRequestHandler(
 }
 
 func (r *RequestHandler) Run(ctx context.Context) {
-	r.logger.Info("RequestHandler running")
+	r.logger.Debug("RequestHandler running")
 
 	for {
 		select {
@@ -82,7 +82,7 @@ func (r *RequestHandler) handleMove(ctx context.Context, id model.ClientID, m *p
 
 func (r *RequestHandler) handleShoot(ctx context.Context, id model.ClientID, m *pb.Shoot) {
 	x, y, z := m.Point.X, m.Point.Y, m.Point.Z
-	r.worldManager.RemoveBlock(Point{int(x), int(y), int(z)})
+	r.worldManager.RemoveBlock(model.Point{X: int(x), Y: int(y), Z: int(z)})
 }
 
 func (r *RequestHandler) handleWorldDiffRequest(ctx context.Context, id model.ClientID, m *pb.WorldDiff) {

@@ -7,9 +7,9 @@ import (
 )
 
 type DestroyBlockCommand struct {
-	world   *World
+	world   *model.World
 	network *NetworkManager
-	point   Point
+	point   model.Point
 	tick    model.TickID
 }
 
@@ -32,7 +32,7 @@ type AddPlayerCommand struct {
 }
 
 func (a AddPlayerCommand) execute(ctx context.Context) {
-	a.players[a.id] = NewPlayer(a.name)
+	a.players[a.id] = model.NewPlayer(a.name)
 }
 
 type RemovePlayerCommand struct {

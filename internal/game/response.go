@@ -2,6 +2,7 @@ package game
 
 import (
 	pb "qubes/internal/api"
+	"qubes/internal/model"
 )
 
 type ResponseBuilder struct {
@@ -11,10 +12,11 @@ func NewResponseBuilder() *ResponseBuilder {
 	return &ResponseBuilder{}
 }
 
-func (r *ResponseBuilder) NetUpdate(update *NetUpdate) *pb.NetUpdate {
+func (r *ResponseBuilder) NetUpdate(update *NetUpdate, tick model.TickID) *pb.NetUpdate {
 	return &pb.NetUpdate{
 		Blocks:   r.WorldUpdates(update.blocks),
 		Entities: r.AllPlayers(update.players),
+		Tick:     uint64(tick),
 	}
 }
 
@@ -34,7 +36,7 @@ func (r *ResponseBuilder) AllPlayers(players []*PlayerUpdate) *pb.EntityUpdates 
 	pbplayers := make([]*pb.Player, len(players))
 	for i, p := range players {
 		pbplayers[i] = &pb.Player{
-			Id:  p.name,
+			Id:  p.Name,
 			Pos: &pb.FloatPoint{X: p.X, Y: p.Y, Z: p.Z},
 		}
 	}
@@ -52,7 +54,7 @@ func (r *ResponseBuilder) PlayerDisconnected(id string) *pb.PlayerDisconnected {
 	return &pb.PlayerDisconnected{Id: id}
 }
 
-func (r *ResponseBuilder) Block(p Point, btype pb.BlockType) *pb.Block {
+func (r *ResponseBuilder) Block(p model.Point, btype pb.BlockType) *pb.Block {
 	return &pb.Block{
 		Point:     &pb.WorldPoint{X: int32(p.X), Y: int32(p.Y), Z: int32(p.Z)},
 		BlockType: btype,
