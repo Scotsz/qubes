@@ -7,25 +7,25 @@ import (
 
 type NetUpdate struct {
 	blocks  []*WorldUpdate
-	players []*PlayerUpdate
+	players map[model.PlayerID]*PlayerUpdate
 }
 
 func NewNetUpdate() *NetUpdate {
 	return &NetUpdate{
 		blocks:  make([]*WorldUpdate, 0),
-		players: make([]*PlayerUpdate, 0),
+		players: make(map[model.PlayerID]*PlayerUpdate, 0),
 	}
 }
 
 type WorldUpdate struct {
-	points  []model.Point
+	point   model.Point
 	newType pb.BlockType
 	tick    model.TickID
 }
 
 type PlayerUpdate struct {
 	X, Y, Z float32
-	Name    string
+	id      model.PlayerID
 	tick    model.TickID
 }
 
@@ -34,7 +34,7 @@ func NewPlayerUpdate(player *model.Player, tick model.TickID) *PlayerUpdate {
 		X:    player.X,
 		Y:    player.Y,
 		Z:    player.Z,
-		Name: player.Name,
+		id:   player.ID,
 		tick: tick,
 	}
 }

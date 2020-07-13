@@ -7,7 +7,6 @@ import (
 	"qubes/internal/config"
 	"qubes/internal/game"
 	"qubes/internal/http"
-	"qubes/internal/protocol"
 	"qubes/internal/ws"
 )
 
@@ -20,7 +19,7 @@ func main() {
 	}
 	ctx := context.Background()
 
-	proto := protocol.NewJson()
+	proto := ws.NewJson()
 	clientStore := ws.NewClientStore()
 
 	sender := ws.NewSender(logger, proto, clientStore)

@@ -19,17 +19,8 @@ message EntityUpdates {
     repeated Player players = 2;
 }
 
-message BlockUpdates {
-    repeated Blocks blocks = 1;
-}
-
-message Blocks {
-    repeated WorldPoint point = 1;
-    BlockType blockType = 2;
-}
-
 message NetUpdate {
-    BlockUpdates blocks = 1;
+    repeated Block blocks = 1;
     EntityUpdates entities = 2;
     uint64 tick = 3;
 }

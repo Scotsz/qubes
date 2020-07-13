@@ -135,7 +135,7 @@ func TestWorld_DestroyBlock(t *testing.T) {
 
 	////w1
 	//w1 := world1(t)
-	//wm := NewWorldManager(w1)
+	//wm := NewStateManager(w1)
 	//go wm.Run(ctx)
 	//
 	//wm.RemoveBlock(Point{6, 2, 5})
@@ -163,7 +163,7 @@ func TestWorld_DestroyBlock(t *testing.T) {
 	//assert.Equal(t, 0, destroyed)
 	//w2
 	//w2 := world2(t)
-	//wm2 := NewWorldManager(w2)
+	//wm2 := NewStateManager(w2)
 	//wm2.Run(ctx)
 	//wm2.RemoveBlock(Point{1, 1, 1})
 	//time.Sleep(time.Second)

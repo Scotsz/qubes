@@ -5,10 +5,6 @@ import (
 	pb "qubes/internal/api"
 )
 
-type Point struct {
-	X, Y, Z int
-}
-
 type World struct {
 	width, height, depth int
 	blocks               []pb.BlockType

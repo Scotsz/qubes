@@ -7,7 +7,6 @@ import (
 	"nhooyr.io/websocket"
 	pb "qubes/internal/api"
 	"qubes/internal/model"
-	"qubes/internal/protocol"
 	"sync"
 )
 
@@ -22,10 +21,10 @@ type Server struct {
 	clients  *ClientStore
 	logger   *zap.SugaredLogger
 	game     GameHandler
-	protocol protocol.Protocol
+	protocol Protocol
 }
 
-func NewServer(logger *zap.SugaredLogger, protocol protocol.Protocol, clients *ClientStore) *Server {
+func NewServer(logger *zap.SugaredLogger, protocol Protocol, clients *ClientStore) *Server {
 	return &Server{
 		clients:  clients,
 		mu:       sync.Mutex{},
@@ -76,11 +75,11 @@ func (s *Server) HandleMessage(client *Client, msg []byte) error {
 
 type sender struct {
 	clients  *ClientStore
-	protocol protocol.Protocol
+	protocol Protocol
 	logger   *zap.SugaredLogger
 }
 
-func NewSender(logger *zap.SugaredLogger, proto protocol.Protocol, store *ClientStore) *sender {
+func NewSender(logger *zap.SugaredLogger, proto Protocol, store *ClientStore) *sender {
 	return &sender{
 		clients:  store,
 		protocol: proto,

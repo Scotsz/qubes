@@ -2,7 +2,6 @@ package game
 
 import (
 	"context"
-	"fmt"
 	"go.uber.org/zap"
 	pb "qubes/internal/api"
 	"qubes/internal/model"
@@ -10,29 +9,32 @@ import (
 
 type RequestHandler struct {
 	logger       *zap.SugaredLogger
-	commandQueue chan *PlayerCommand
+	requestQueue chan *PlayerRequest
 
-	worldManager *state
+	worldManager *stateManager
 	network      *NetworkManager
+
+	commandFactory CommandFactory
 }
 
-type PlayerCommand struct {
+type PlayerRequest struct {
 	id model.ClientID
 	*pb.Request
 }
 
 func (r *RequestHandler) AddRequest(id model.ClientID, req *pb.Request) {
-	r.commandQueue <- &PlayerCommand{id, req}
+	r.requestQueue <- &PlayerRequest{id, req}
 }
+
 func NewRequestHandler(
 	logger *zap.SugaredLogger,
-	worldManager *state,
+	worldManager *stateManager,
 	network *NetworkManager,
 
 ) *RequestHandler {
 	return &RequestHandler{
 		logger:       logger,
-		commandQueue: make(chan *PlayerCommand, 20),
+		requestQueue: make(chan *PlayerRequest, 20),
 		network:      network,
 		worldManager: worldManager,
 	}
@@ -43,35 +45,30 @@ func (r *RequestHandler) Run(ctx context.Context) {
 
 	for {
 		select {
-		case cmd := <-r.commandQueue:
-			r.handleCommand(ctx, cmd)
+		case cmd := <-r.requestQueue:
+			r.handleRequest(ctx, cmd)
 		case <-ctx.Done():
 			return
 		}
 	}
 }
 
-func (r *RequestHandler) handleCommand(ctx context.Context, cmd *PlayerCommand) {
-	var payload string
+func (r *RequestHandler) handleRequest(ctx context.Context, cmd *PlayerRequest) {
 	switch cmd.Command.(type) {
-
 	case *pb.Request_Move:
-		r.handleMove(ctx, cmd.id, cmd.GetMove())
-		payload = fmt.Sprintf(cmd.GetMove().String())
+		move := cmd.GetMove()
+		r.handleMove(ctx, cmd.id, move)
 
 	case *pb.Request_Shoot:
 		r.handleShoot(ctx, cmd.id, cmd.GetShoot())
-		payload = fmt.Sprintf(cmd.GetShoot().String())
 
 	case *pb.Request_WorldDiff:
 		r.handleWorldDiffRequest(ctx, cmd.id, cmd.GetWorldDiff())
-		payload = fmt.Sprintf(cmd.GetWorldDiff().String())
 
 	case *pb.Request_Connect:
-		payload = fmt.Sprintf(cmd.GetConnect().String())
 	}
 
-	r.logger.Infof("ID[%v] [%T] [%v]", cmd.id[:8], cmd.Command, payload)
+	r.logger.Infof("ID[%v] [%T]", cmd.id[:8], cmd.Command)
 
 }
 
@@ -81,8 +78,8 @@ func (r *RequestHandler) handleMove(ctx context.Context, id model.ClientID, m *p
 }
 
 func (r *RequestHandler) handleShoot(ctx context.Context, id model.ClientID, m *pb.Shoot) {
-	x, y, z := m.Point.X, m.Point.Y, m.Point.Z
-	r.worldManager.RemoveBlock(model.Point{X: int(x), Y: int(y), Z: int(z)})
+	point := model.Point{X: int(m.Point.X), Y: int(m.Point.Y), Z: int(m.Point.Z)}
+	r.worldManager.AddCommand(r.commandFactory.RemoveBlock(point))
 }
 
 func (r *RequestHandler) handleWorldDiffRequest(ctx context.Context, id model.ClientID, m *pb.WorldDiff) {

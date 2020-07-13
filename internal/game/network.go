@@ -57,7 +57,7 @@ func (n *NetworkManager) Run(ctx context.Context) {
 			if _, ok := n.queue[update.tick]; !ok {
 				n.queue[update.tick] = NewNetUpdate()
 			}
-			n.queue[update.tick].players = append(n.queue[update.tick].players, update)
+			n.queue[update.tick].players[update.id] = update
 
 		case <-ticker:
 			for tick, upd := range n.queue {
@@ -70,7 +70,6 @@ func (n *NetworkManager) Run(ctx context.Context) {
 }
 
 func (n *NetworkManager) AddPlayerUpdate(update *PlayerUpdate) {
-	//n.sender.Broadcast(n.response.AllPlayers(players, tick))
 	n.playerUpdates <- update
 }
 
@@ -86,9 +85,9 @@ func (n *NetworkManager) AddWorldUpdate(update *WorldUpdate) {
 	}
 }
 
-func (n *NetworkManager) SendPlayerConnected(id model.ClientID) {
+func (n *NetworkManager) SendPlayerConnected(id model.PlayerID) {
 	n.sender.Broadcast(n.response.PlayerConnected(string(id)))
 }
-func (n *NetworkManager) SendPlayerDisconnected(id model.ClientID) {
+func (n *NetworkManager) SendPlayerDisconnected(id model.PlayerID) {
 	n.sender.Broadcast(n.response.PlayerDisconnected(string(id)))
 }

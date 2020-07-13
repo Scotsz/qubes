@@ -6,40 +6,58 @@ import (
 	"qubes/internal/model"
 )
 
-type DestroyBlockCommand struct {
-	world   *model.World
+type CommandFactory struct {
 	network *NetworkManager
-	point   model.Point
-	tick    model.TickID
+	state   *State
 }
 
-func (d DestroyBlockCommand) execute(ctx context.Context) {
-	deleting := d.world.DestroyBlock(ctx, d.point)
-	if len(deleting) > 0 {
-		update := &WorldUpdate{
-			points:  deleting,
-			newType: pb.BlockType_Air,
-			tick:    d.tick,
+func NewCommandFactory(network *NetworkManager, state *State) *CommandFactory {
+	return &CommandFactory{
+		network: network,
+		state:   state,
+	}
+}
+func (c *CommandFactory) RemoveBlock(p model.Point) Command {
+	return func(ctx context.Context) {
+		deleting := c.state.world.DestroyBlock(ctx, p)
+		if len(deleting) > 0 {
+			update := &WorldUpdate{
+				points:  deleting,
+				newType: pb.BlockType_Air,
+				tick:    c.state.tick,
+			}
+			c.network.AddWorldUpdate(update)
 		}
-		d.network.AddWorldUpdate(update)
 	}
 }
 
-type AddPlayerCommand struct {
-	players PlayerStorage
-	id      model.ClientID
-	name    string
+func (c *CommandFactory) AddPlayer(id model.PlayerID) Command {
+	return func(ctx context.Context) {
+		c.state.players[id] = model.NewPlayer(id)
+		c.network.SendPlayerConnected(id)
+	}
 }
 
-func (a AddPlayerCommand) execute(ctx context.Context) {
-	a.players[a.id] = model.NewPlayer(a.name)
+func (c *CommandFactory) RemovePlayer(id model.PlayerID) Command {
+	return func(ctx context.Context) {
+		delete(c.state.players, id)
+		c.network.SendPlayerDisconnected(id)
+	}
 }
 
-type RemovePlayerCommand struct {
-	players PlayerStorage
-	id      model.ClientID
+func (c *CommandFactory) IncTick() Command {
+	return func(ctx context.Context) {
+		c.state.tick++
+	}
 }
 
-func (r RemovePlayerCommand) execute(ctx context.Context) {
-	delete(r.players, r.id)
+func (c *CommandFactory) ProcessTickers() Command {
+	return func(ctx context.Context) {
+		for _, p := range c.state.players {
+			p.Tick()
+			if p.ShouldUpdate() {
+				c.network.AddPlayerUpdate(NewPlayerUpdate(p, c.state.tick))
+			}
+		}
+	}
 }

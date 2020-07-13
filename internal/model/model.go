@@ -14,3 +14,10 @@ func NewID() ClientID {
 	str := uuid.New().String()
 	return ClientID(str)
 }
+
+type Point struct {
+	X, Y, Z int
+}
+type FPoint struct {
+	X, Y, Z float64
+}

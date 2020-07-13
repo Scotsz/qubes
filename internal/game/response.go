@@ -20,25 +20,24 @@ func (r *ResponseBuilder) NetUpdate(update *NetUpdate, tick model.TickID) *pb.Ne
 	}
 }
 
-func (r *ResponseBuilder) WorldUpdates(cs []*WorldUpdate) *pb.BlockUpdates {
-	ch := make([]*pb.Blocks, len(cs))
+func (r *ResponseBuilder) WorldUpdates(cs []*WorldUpdate) []*pb.Block {
+	ch := make([]*pb.Block, len(cs))
 	for i, c := range cs {
-		points := make([]*pb.WorldPoint, 0)
-		for _, c := range c.points {
-			points = append(points, &pb.WorldPoint{X: int32(c.X), Y: int32(c.Y), Z: int32(c.Y)})
-		}
-		ch[i] = &pb.Blocks{Point: points, BlockType: c.newType}
+		point := &pb.WorldPoint{X: int32(c.point.X), Y: int32(c.point.Y), Z: int32(c.point.Z)}
+		ch[i] = &pb.Block{Point: point, BlockType: c.newType}
 	}
-	return &pb.BlockUpdates{Blocks: ch}
+	return ch
 }
 
-func (r *ResponseBuilder) AllPlayers(players []*PlayerUpdate) *pb.EntityUpdates {
+func (r *ResponseBuilder) AllPlayers(players map[model.PlayerID]*PlayerUpdate) *pb.EntityUpdates {
 	pbplayers := make([]*pb.Player, len(players))
-	for i, p := range players {
+	i := 0
+	for id, p := range players {
 		pbplayers[i] = &pb.Player{
-			Id:  p.Name,
+			Id:  string(id),
 			Pos: &pb.FloatPoint{X: p.X, Y: p.Y, Z: p.Z},
 		}
+		i++
 	}
 	return &pb.EntityUpdates{Players: pbplayers}
 }

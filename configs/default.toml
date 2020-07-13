@@ -2,11 +2,6 @@
 host = "localhost"
 port = "8000"
 
-[Redis]
-url = "localhost:6379"
-username = ""
-password = ""
-
 [Game]
 SimulationRate = "20"
 NetRate = "40"

@@ -6,17 +6,18 @@ import (
 )
 
 type Player struct {
-	Name string
+	//Name string
 
+	ID           PlayerID
 	X, Y, Z      float32
 	xDest, yDest int32
 	dx, dy       float32
 	speed        float32
 }
 
-func NewPlayer(name string) *Player {
+func NewPlayer(id PlayerID) *Player {
 	return &Player{
-		Name:  "player_" + name,
+		ID:    id,
 		speed: 2,
 		X:     1,
 		Y:     1,

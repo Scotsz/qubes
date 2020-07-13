@@ -221,114 +221,12 @@ func (x *EntityUpdates) GetPlayers() []*Player {
 	return nil
 }
 
-type BlockUpdates struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Blocks []*Blocks `protobuf:"bytes,1,rep,name=blocks,proto3" json:"blocks,omitempty"`
-}
-
-func (x *BlockUpdates) Reset() {
-	*x = BlockUpdates{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_response_proto_msgTypes[4]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *BlockUpdates) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BlockUpdates) ProtoMessage() {}
-
-func (x *BlockUpdates) ProtoReflect() protoreflect.Message {
-	mi := &file_response_proto_msgTypes[4]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BlockUpdates.ProtoReflect.Descriptor instead.
-func (*BlockUpdates) Descriptor() ([]byte, []int) {
-	return file_response_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *BlockUpdates) GetBlocks() []*Blocks {
-	if x != nil {
-		return x.Blocks
-	}
-	return nil
-}
-
-type Blocks struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Point     []*WorldPoint `protobuf:"bytes,1,rep,name=point,proto3" json:"point,omitempty"`
-	BlockType BlockType     `protobuf:"varint,2,opt,name=blockType,proto3,enum=BlockType" json:"blockType,omitempty"`
-}
-
-func (x *Blocks) Reset() {
-	*x = Blocks{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_response_proto_msgTypes[5]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Blocks) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Blocks) ProtoMessage() {}
-
-func (x *Blocks) ProtoReflect() protoreflect.Message {
-	mi := &file_response_proto_msgTypes[5]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Blocks.ProtoReflect.Descriptor instead.
-func (*Blocks) Descriptor() ([]byte, []int) {
-	return file_response_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *Blocks) GetPoint() []*WorldPoint {
-	if x != nil {
-		return x.Point
-	}
-	return nil
-}
-
-func (x *Blocks) GetBlockType() BlockType {
-	if x != nil {
-		return x.BlockType
-	}
-	return BlockType_Debug
-}
-
 type NetUpdate struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Blocks   *BlockUpdates  `protobuf:"bytes,1,opt,name=blocks,proto3" json:"blocks,omitempty"`
+	Blocks   []*Block       `protobuf:"bytes,1,rep,name=blocks,proto3" json:"blocks,omitempty"`
 	Entities *EntityUpdates `protobuf:"bytes,2,opt,name=entities,proto3" json:"entities,omitempty"`
 	Tick     uint64         `protobuf:"varint,3,opt,name=tick,proto3" json:"tick,omitempty"`
 }
@@ -336,7 +234,7 @@ type NetUpdate struct {
 func (x *NetUpdate) Reset() {
 	*x = NetUpdate{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_response_proto_msgTypes[6]
+		mi := &file_response_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -349,7 +247,7 @@ func (x *NetUpdate) String() string {
 func (*NetUpdate) ProtoMessage() {}
 
 func (x *NetUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_response_proto_msgTypes[6]
+	mi := &file_response_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -362,10 +260,10 @@ func (x *NetUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetUpdate.ProtoReflect.Descriptor instead.
 func (*NetUpdate) Descriptor() ([]byte, []int) {
-	return file_response_proto_rawDescGZIP(), []int{6}
+	return file_response_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *NetUpdate) GetBlocks() *BlockUpdates {
+func (x *NetUpdate) GetBlocks() []*Block {
 	if x != nil {
 		return x.Blocks
 	}
@@ -403,23 +301,14 @@ var file_response_proto_rawDesc = []byte{
 	0x0a, 0x0d, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x12,
 	0x21, 0x0a, 0x07, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b,
 	0x32, 0x07, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x52, 0x07, 0x70, 0x6c, 0x61, 0x79, 0x65,
-	0x72, 0x73, 0x22, 0x2f, 0x0a, 0x0c, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x55, 0x70, 0x64, 0x61, 0x74,
-	0x65, 0x73, 0x12, 0x1f, 0x0a, 0x06, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x18, 0x01, 0x20, 0x03,
-	0x28, 0x0b, 0x32, 0x07, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x52, 0x06, 0x62, 0x6c, 0x6f,
-	0x63, 0x6b, 0x73, 0x22, 0x55, 0x0a, 0x06, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x12, 0x21, 0x0a,
-	0x05, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x57,
-	0x6f, 0x72, 0x6c, 0x64, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x52, 0x05, 0x70, 0x6f, 0x69, 0x6e, 0x74,
-	0x12, 0x28, 0x0a, 0x09, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x0e, 0x32, 0x0a, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x52,
-	0x09, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x22, 0x72, 0x0a, 0x09, 0x4e, 0x65,
-	0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x25, 0x0a, 0x06, 0x62, 0x6c, 0x6f, 0x63, 0x6b,
-	0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x55,
-	0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x52, 0x06, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x12, 0x2a,
-	0x0a, 0x08, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x69, 0x65, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x0e, 0x2e, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73,
-	0x52, 0x08, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x69, 0x65, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x69,
-	0x63, 0x6b, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x52, 0x04, 0x74, 0x69, 0x63, 0x6b, 0x42, 0x07,
-	0x5a, 0x05, 0x2e, 0x3b, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x73, 0x22, 0x6b, 0x0a, 0x09, 0x4e, 0x65, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12,
+	0x1e, 0x0a, 0x06, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x06, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x52, 0x06, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x12,
+	0x2a, 0x0a, 0x08, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x69, 0x65, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x0e, 0x2e, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x73, 0x52, 0x08, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x69, 0x65, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x74,
+	0x69, 0x63, 0x6b, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x52, 0x04, 0x74, 0x69, 0x63, 0x6b, 0x42,
+	0x07, 0x5a, 0x05, 0x2e, 0x3b, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -434,33 +323,27 @@ func file_response_proto_rawDescGZIP() []byte {
 	return file_response_proto_rawDescData
 }
 
-var file_response_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_response_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_response_proto_goTypes = []interface{}{
 	(*Player)(nil),             // 0: Player
 	(*PlayerConnected)(nil),    // 1: PlayerConnected
 	(*PlayerDisconnected)(nil), // 2: PlayerDisconnected
 	(*EntityUpdates)(nil),      // 3: EntityUpdates
-	(*BlockUpdates)(nil),       // 4: BlockUpdates
-	(*Blocks)(nil),             // 5: Blocks
-	(*NetUpdate)(nil),          // 6: NetUpdate
-	(*FloatPoint)(nil),         // 7: FloatPoint
-	(*WorldPoint)(nil),         // 8: WorldPoint
-	(BlockType)(0),             // 9: BlockType
+	(*NetUpdate)(nil),          // 4: NetUpdate
+	(*FloatPoint)(nil),         // 5: FloatPoint
+	(*Block)(nil),              // 6: Block
 }
 var file_response_proto_depIdxs = []int32{
-	7, // 0: Player.pos:type_name -> FloatPoint
+	5, // 0: Player.pos:type_name -> FloatPoint
 	0, // 1: PlayerConnected.player:type_name -> Player
 	0, // 2: EntityUpdates.players:type_name -> Player
-	5, // 3: BlockUpdates.blocks:type_name -> Blocks
-	8, // 4: Blocks.point:type_name -> WorldPoint
-	9, // 5: Blocks.blockType:type_name -> BlockType
-	4, // 6: NetUpdate.blocks:type_name -> BlockUpdates
-	3, // 7: NetUpdate.entities:type_name -> EntityUpdates
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	6, // 3: NetUpdate.blocks:type_name -> Block
+	3, // 4: NetUpdate.entities:type_name -> EntityUpdates
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_response_proto_init() }
@@ -519,30 +402,6 @@ func file_response_proto_init() {
 			}
 		}
 		file_response_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BlockUpdates); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_response_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Blocks); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_response_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*NetUpdate); i {
 			case 0:
 				return &v.state
@@ -561,7 +420,7 @@ func file_response_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_response_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
